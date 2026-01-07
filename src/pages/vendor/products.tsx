@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
@@ -7,7 +7,7 @@ interface Product {
   name: string;
   price: number;
   description: string;
-  icon: string;
+  icon: string; // Now stores image URL instead of emoji
   isActive: boolean;
 }
 
@@ -20,18 +20,18 @@ export default function VendorProducts() {
   const [success, setSuccess] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state for new/edit product
   const [formData, setFormData] = useState<Product>({
     name: '',
     price: 0,
     description: '',
-    icon: '☕',
+    icon: '',
     isActive: true,
   });
-
-  // Icon options - Generic for all business types
-  const iconOptions = ['📦', '🛍️', '🎁', '💼', '🛒', '⭐', '💎', '🏷️', '✨', '🎯', '☕', '🍕', '🍔', '🥤', '🍰', '👕', '👗', '👟', '💄', '📱', '🔧', '🏠', '🚗', '💇', '💅', '🎨', '📚', '🎵', '🌸', '🧴'];
 
   useEffect(() => {
     fetchProducts();
@@ -68,6 +68,123 @@ export default function VendorProducts() {
     }
   };
 
+  // Compress image before upload
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        const maxDimension = 800;
+        let { width, height } = img;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' }));
+            } else {
+              reject(new Error('Failed to compress image'));
+            }
+          },
+          'image/jpeg',
+          0.7
+        );
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Upload image to backend
+  const uploadImage = async (file: File): Promise<string> => {
+    const vendorId = localStorage.getItem('vendorId');
+    const compressedFile = await compressImage(file);
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result as string;
+          
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/${vendorId}/upload-image`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageData: base64,
+                fileName: `product-${Date.now()}.jpg`
+              })
+            }
+          );
+
+          const data = await res.json();
+          if (data.success && data.data?.imageUrl) {
+            resolve(data.data.imageUrl);
+          } else {
+            reject(new Error(data.message || 'Upload failed'));
+          }
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(compressedFile);
+    });
+  };
+
+  // Handle file selection for product image
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check if it's an image
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      setUploadProgress(10);
+      setError('');
+
+      setUploadProgress(30);
+      const imageUrl = await uploadImage(file);
+      
+      setUploadProgress(100);
+      setFormData({ ...formData, icon: imageUrl });
+      setSuccess('Image uploaded!');
+      
+      setTimeout(() => {
+        setUploadProgress(0);
+        setSuccess('');
+      }, 1500);
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      setError(err.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const handleSaveProduct = async () => {
     try {
       setSaving(true);
@@ -90,7 +207,6 @@ export default function VendorProducts() {
 
       let res;
       if (editingProduct?.id) {
-        // Update existing product
         res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/product/${editingProduct.id}`,
           {
@@ -103,7 +219,6 @@ export default function VendorProducts() {
           }
         );
       } else {
-        // Create new product
         res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/product`,
           {
@@ -121,7 +236,7 @@ export default function VendorProducts() {
         setSuccess(editingProduct?.id ? 'Product updated!' : 'Product added!');
         setShowAddForm(false);
         setEditingProduct(null);
-        setFormData({ name: '', price: 0, description: '', icon: '☕', isActive: true });
+        setFormData({ name: '', price: 0, description: '', icon: '', isActive: true });
         fetchProducts();
       } else {
         const errorData = await res.json();
@@ -167,7 +282,7 @@ export default function VendorProducts() {
       name: product.name,
       price: product.price,
       description: product.description || '',
-      icon: product.icon || '☕',
+      icon: product.icon || '',
       isActive: product.isActive !== false,
     });
     setShowAddForm(true);
@@ -195,6 +310,40 @@ export default function VendorProducts() {
     } catch (err) {
       console.error('Error toggling product:', err);
     }
+  };
+
+  // Check if icon is URL (image) or emoji
+  const isImageUrl = (icon: string) => {
+    return icon && (icon.startsWith('http') || icon.startsWith('/api/'));
+  };
+
+  // Render product icon/image
+  const renderProductImage = (icon: string, size: 'small' | 'medium' | 'large' = 'medium') => {
+    const sizeClasses = {
+      small: 'w-12 h-12',
+      medium: 'w-16 h-16',
+      large: 'w-20 h-20'
+    };
+
+    if (isImageUrl(icon)) {
+      return (
+        <img
+          src={icon}
+          alt="Product"
+          className={`${sizeClasses[size]} object-cover rounded-xl border-2 border-indigo-500/30`}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23334155" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%23818cf8" font-size="40">📦</text></svg>';
+          }}
+        />
+      );
+    }
+
+    // Fallback to emoji or placeholder
+    return (
+      <div className={`${sizeClasses[size]} flex items-center justify-center bg-slate-800 rounded-xl border-2 border-indigo-500/30 text-3xl`}>
+        {icon || '📦'}
+      </div>
+    );
   };
 
   if (loading) {
@@ -232,7 +381,7 @@ export default function VendorProducts() {
                   onClick={() => {
                     setShowAddForm(true);
                     setEditingProduct(null);
-                    setFormData({ name: '', price: 0, description: '', icon: '☕', isActive: true });
+                    setFormData({ name: '', price: 0, description: '', icon: '', isActive: true });
                   }}
                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-lg transition font-bold text-sm"
                 >
@@ -259,10 +408,76 @@ export default function VendorProducts() {
           {/* Add/Edit Form Modal */}
           {showAddForm && (
             <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-              <div className="bg-slate-900 border border-indigo-500/30 rounded-2xl p-6 w-full max-w-md">
+              <div className="bg-slate-900 border border-indigo-500/30 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
                 <h2 className="text-xl font-bold text-white mb-4">
                   {editingProduct?.id ? '✏️ Edit Product' : '➕ Add Product'}
                 </h2>
+
+                {/* Product Image Upload */}
+                <div className="mb-4">
+                  <label className="block text-indigo-300 text-sm mb-2">Product Image</label>
+                  <div className="flex items-center gap-4">
+                    {/* Image Preview */}
+                    <div className="relative">
+                      {formData.icon && isImageUrl(formData.icon) ? (
+                        <img
+                          src={formData.icon}
+                          alt="Product"
+                          className="w-24 h-24 object-cover rounded-xl border-2 border-indigo-500"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-24 h-24 flex items-center justify-center bg-slate-800 rounded-xl border-2 border-dashed border-indigo-500/50 text-4xl">
+                          📷
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Upload Button */}
+                    <div className="flex-1">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,.heic,.heif"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="product-image-input"
+                      />
+                      <label
+                        htmlFor="product-image-input"
+                        className={`block w-full text-center px-4 py-3 rounded-xl font-bold cursor-pointer transition ${
+                          uploadingImage
+                            ? 'bg-slate-700 text-slate-400'
+                            : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white'
+                        }`}
+                      >
+                        {uploadingImage ? `Uploading... ${uploadProgress}%` : '📤 Upload Image'}
+                      </label>
+                      
+                      {/* Progress Bar */}
+                      {uploadingImage && (
+                        <div className="mt-2 h-2 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                      )}
+                      
+                      {formData.icon && isImageUrl(formData.icon) && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, icon: '' })}
+                          className="mt-2 w-full text-center text-red-400 hover:text-red-300 text-sm"
+                        >
+                          🗑️ Remove Image
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 {/* Product Name */}
                 <div className="mb-4">
@@ -300,27 +515,6 @@ export default function VendorProducts() {
                   />
                 </div>
 
-                {/* Icon Selector */}
-                <div className="mb-4">
-                  <label className="block text-indigo-300 text-sm mb-2">Icon</label>
-                  <div className="grid grid-cols-10 gap-2">
-                    {iconOptions.map((icon) => (
-                      <button
-                        key={icon}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, icon })}
-                        className={`text-2xl p-2 rounded-lg transition ${
-                          formData.icon === icon
-                            ? 'bg-indigo-600 ring-2 ring-indigo-400'
-                            : 'bg-slate-800 hover:bg-slate-700'
-                        }`}
-                      >
-                        {icon}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Active Toggle */}
                 <div className="mb-6">
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -347,7 +541,7 @@ export default function VendorProducts() {
                   </button>
                   <button
                     onClick={handleSaveProduct}
-                    disabled={saving}
+                    disabled={saving || uploadingImage}
                     className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-bold transition disabled:opacity-50"
                   >
                     {saving ? 'Saving...' : (editingProduct?.id ? 'Update' : 'Add Product')}
@@ -381,7 +575,7 @@ export default function VendorProducts() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="text-4xl">{product.icon || '☕'}</div>
+                      {renderProductImage(product.icon, 'medium')}
                       <div>
                         <h3 className="text-lg font-bold text-white">{product.name}</h3>
                         {product.description && (
@@ -430,7 +624,9 @@ export default function VendorProducts() {
                     key={product.id}
                     className="bg-indigo-900/30 rounded-xl p-4 text-center border border-indigo-500/20"
                   >
-                    <div className="text-3xl mb-2">{product.icon || '☕'}</div>
+                    <div className="flex justify-center mb-2">
+                      {renderProductImage(product.icon, 'small')}
+                    </div>
                     <p className="text-white font-semibold text-sm">{product.name}</p>
                     <p className="text-emerald-400 font-bold">₹{product.price}</p>
                   </div>
