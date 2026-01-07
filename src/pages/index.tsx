@@ -1,14 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 export default function Home() {
+  const router = useRouter();
   const [scrollY, setScrollY] = useState(0);
   const [animateCards, setAnimateCards] = useState(false);
   const [counter1, setCounter1] = useState(0);
   const [counter2, setCounter2] = useState(0);
   const [counter3, setCounter3] = useState(0);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
+    // Check if vendor is already logged in
+    const token = localStorage.getItem('accessToken');
+    const vendorId = localStorage.getItem('vendorId');
+    
+    if (token && vendorId) {
+      // Vendor is logged in, redirect to dashboard
+      router.push('/vendor/dashboard');
+      return;
+    }
+    
+    setCheckingAuth(false);
+    
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     setAnimateCards(true);
@@ -24,7 +39,19 @@ export default function Home() {
       window.removeEventListener('scroll', handleScroll);
       clearInterval(interval);
     };
-  }, []);
+  }, [router]);
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-indigo-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

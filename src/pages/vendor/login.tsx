@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
@@ -8,6 +8,20 @@ export default function VendorLoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Check if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    const vendorId = localStorage.getItem('vendorId');
+    
+    if (token && vendorId) {
+      // Already logged in, redirect to dashboard
+      router.push('/vendor/dashboard');
+    } else {
+      setCheckingAuth(false);
+    }
+  }, [router]);
 
   const handleLogin = async (e: any) => {
     e.preventDefault();
@@ -43,6 +57,18 @@ export default function VendorLoginPage() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-indigo-300">Checking login...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
