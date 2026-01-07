@@ -1,0 +1,120 @@
+# Force HTTPS (optional - uncomment if needed)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Don't rewrite real files or directories
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  
+  # Handle dynamic routes - map /scan/anything to /scan/[vendorId].html
+  RewriteRule ^scan/([^/]+)/?$ /scan/[vendorId].html [QSA,L]
+  
+  # Handle /vendor/storefront/anything to /vendor/storefront/[vendorId].html
+  RewriteRule ^vendor/storefront/([^/]+)/?$ /vendor/storefront/[vendorId].html [QSA,L]
+  
+  # Handle /vendorweb/anything to /vendorweb/[vendorname].html
+  RewriteRule ^vendorweb/([^/]+)/?$ /vendorweb/[vendorname].html [QSA,L]
+  
+  # Handle /join/anything to /join/[vendorId].html
+  RewriteRule ^join/([^/]+)/?$ /join/[vendorId].html [QSA,L]
+  
+  # Handle /offer/vendorId routes
+  RewriteRule ^offer/([^/]+)/?$ /offer/[vendorId].html [QSA,L]
+  RewriteRule ^offer/([^/]+)/otp-offer/?$ /offer/[vendorId]/otp-offer.html [QSA,L]
+  RewriteRule ^offer/([^/]+)/register/?$ /offer/[vendorId]/register.html [QSA,L]
+  
+  # Serve .html files directly (e.g., /vendor/login -> /vendor/login.html)
+  RewriteCond %{REQUEST_FILENAME} !\.html$
+  RewriteCond %{REQUEST_FILENAME}\.html -f
+  RewriteRule ^(.*)$ $1.html [QSA,L]
+  
+  # Fallback to index.html for SPA routing (only for truly unknown routes)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ /index.html [QSA,L]
+</IfModule>
+
+# Force correct MIME types - critical for mobile browsers
+<IfModule mod_mime.c>
+  AddType text/html .html
+  AddType application/javascript .js .mjs
+  AddType text/css .css
+  AddType image/svg+xml .svg .svgz
+  AddType application/json .json
+  AddType font/woff .woff
+  AddType font/woff2 .woff2
+  AddType font/ttf .ttf
+  AddType application/vnd.ms-fontobject .eot
+  AddType image/png .png
+  AddType image/jpeg .jpg .jpeg
+  AddType image/gif .gif
+  AddType image/webp .webp
+</IfModule>
+
+# Force CSS files to serve as text/css (mobile compatibility)
+<FilesMatch "\.css$">
+  ForceType text/css
+  Header set Content-Type "text/css; charset=UTF-8"
+</FilesMatch>
+
+# Force JS files to serve correctly
+<FilesMatch "\.js$">
+  ForceType application/javascript
+  Header set Content-Type "application/javascript; charset=UTF-8"
+</FilesMatch>
+
+# Enable gzip compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# Disable aggressive caching for testing - uncomment after confirming it works
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 hour"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 hour"
+  ExpiresByType application/javascript "access plus 1 hour"
+  ExpiresByType image/svg+xml "access plus 1 day"
+  ExpiresByType image/jpeg "access plus 1 day"
+  ExpiresByType image/png "access plus 1 day"
+  ExpiresByType image/gif "access plus 1 day"
+</IfModule>
+
+# Cache control headers - relaxed for testing
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+  
+  <FilesMatch "\.(svg|png|jpg|jpeg|gif|woff|woff2|ttf)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+  
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  
+  # Security headers
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  
+  # Allow cross-origin for fonts (needed for some mobile browsers)
+  <FilesMatch "\.(ttf|ttc|otf|eot|woff|woff2)$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
