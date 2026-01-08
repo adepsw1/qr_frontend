@@ -57,6 +57,10 @@ export default function VendorDashboard() {
   
   // Contact Admin modal state
   const [showContactAdmin, setShowContactAdmin] = useState(false);
+  
+  // QR Layout modal state
+  const [showQRLayouts, setShowQRLayouts] = useState(false);
+  const [selectedQRLayout, setSelectedQRLayout] = useState<'layout1' | 'layout2' | 'layout3' | 'layout4'>('layout1');
 
   useEffect(() => {
     fetchDashboardData();
@@ -272,6 +276,335 @@ export default function VendorDashboard() {
     } finally {
       setOtpLoading(false);
     }
+  };
+
+  const printQRLayout = (layout: 'layout1' | 'layout2' | 'layout3' | 'layout4') => {
+    if (!vendor?.qr_code_url) {
+      alert('QR code not available');
+      return;
+    }
+
+    let htmlContent = '';
+    
+    if (layout === 'layout1') {
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${vendor.name} - QR Code</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: #f5f5f5;
+              }
+              .container {
+                background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+                padding: 50px;
+                border-radius: 10px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                text-align: center;
+                max-width: 500px;
+                color: white;
+              }
+              h1 {
+                color: #fbbf24;
+                margin: 0 0 10px 0;
+                font-size: 36px;
+                font-weight: bold;
+              }
+              .subtitle {
+                font-size: 18px;
+                color: #e0e7ff;
+                margin-bottom: 30px;
+                font-style: italic;
+              }
+              img {
+                width: 350px;
+                height: 350px;
+                background: white;
+                border: 8px solid white;
+                border-radius: 10px;
+                margin: 30px 0;
+              }
+              .instructions {
+                font-size: 16px;
+                color: white;
+                margin-top: 20px;
+                font-weight: bold;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #e0e7ff;
+                margin-top: 15px;
+              }
+              .branding {
+                font-size: 12px;
+                color: #a5b4fc;
+                margin-top: 20px;
+              }
+              @media print {
+                body { background: white; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Discount Ka QR</h1>
+              <div class="subtitle">Scan karo, discount lo</div>
+              <img src="${vendor.qr_code_url}" alt="QR Code" />
+              <p class="instructions">No app. Sirf scan.</p>
+              <div class="tagline">${vendor.name}</div>
+              <div class="branding">Powered by • XNEX Retail.io</div>
+            </div>
+          </body>
+        </html>
+      `;
+    } else if (layout === 'layout2') {
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${vendor.name} - QR Code</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: #f5f5f5;
+              }
+              .container {
+                background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+                padding: 50px;
+                border-radius: 10px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                text-align: center;
+                max-width: 500px;
+                color: white;
+              }
+              h1 {
+                color: #fbbf24;
+                margin: 0 0 10px 0;
+                font-size: 36px;
+                font-weight: bold;
+              }
+              .subtitle {
+                font-size: 18px;
+                color: #d1fae5;
+                margin-bottom: 30px;
+                font-style: italic;
+              }
+              img {
+                width: 350px;
+                height: 350px;
+                background: white;
+                border: 8px solid white;
+                border-radius: 10px;
+                margin: 30px 0;
+              }
+              .instructions {
+                font-size: 16px;
+                color: white;
+                margin-top: 20px;
+                font-weight: bold;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #d1fae5;
+                margin-top: 15px;
+              }
+              .branding {
+                font-size: 12px;
+                color: #6ee7b7;
+                margin-top: 20px;
+              }
+              @media print {
+                body { background: white; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Discount Ka QR</h1>
+              <div class="subtitle">Scan karo, discount lo</div>
+              <img src="${vendor.qr_code_url}" alt="QR Code" />
+              <p class="instructions">No app. Sirf scan.</p>
+              <div class="tagline">${vendor.name}</div>
+              <div class="branding">Powered by • XNEX Retail.io</div>
+            </div>
+          </body>
+        </html>
+      `;
+    } else if (layout === 'layout3') {
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${vendor.name} - QR Code</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+              }
+              .container {
+                background: white;
+                padding: 50px;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                text-align: center;
+                max-width: 500px;
+              }
+              h1 {
+                color: #7c3aed;
+                margin: 0 0 5px 0;
+                font-size: 32px;
+                font-weight: bold;
+              }
+              .subtitle {
+                font-size: 16px;
+                color: #ec4899;
+                margin-bottom: 30px;
+                font-weight: 600;
+              }
+              img {
+                width: 350px;
+                height: 350px;
+                border: 6px solid #7c3aed;
+                border-radius: 15px;
+                margin: 30px 0;
+              }
+              .instructions {
+                font-size: 18px;
+                color: #7c3aed;
+                margin-top: 20px;
+                font-weight: bold;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #666;
+                margin-top: 15px;
+              }
+              .branding {
+                font-size: 12px;
+                color: #999;
+                margin-top: 20px;
+              }
+              @media print {
+                body { background: white; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>✨ Get Offers</h1>
+              <div class="subtitle">Scan to unlock amazing discounts</div>
+              <img src="${vendor.qr_code_url}" alt="QR Code" />
+              <p class="instructions">📱 Scan with your phone</p>
+              <div class="tagline">${vendor.name}</div>
+              <div class="branding">Smart Discounts • Easy Access</div>
+            </div>
+          </body>
+        </html>
+      `;
+    } else if (layout === 'layout4') {
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${vendor.name} - QR Code</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: #f5f5f5;
+              }
+              .container {
+                background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+                padding: 50px;
+                border-radius: 10px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                text-align: center;
+                max-width: 500px;
+                color: white;
+              }
+              h1 {
+                color: #fef2f2;
+                margin: 0 0 10px 0;
+                font-size: 36px;
+                font-weight: bold;
+              }
+              .subtitle {
+                font-size: 18px;
+                color: #fee2e2;
+                margin-bottom: 30px;
+                font-style: italic;
+              }
+              img {
+                width: 350px;
+                height: 350px;
+                background: white;
+                border: 8px solid white;
+                border-radius: 10px;
+                margin: 30px 0;
+              }
+              .instructions {
+                font-size: 16px;
+                color: white;
+                margin-top: 20px;
+                font-weight: bold;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #fee2e2;
+                margin-top: 15px;
+              }
+              .branding {
+                font-size: 12px;
+                color: #fecaca;
+                margin-top: 20px;
+              }
+              @media print {
+                body { background: white; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>🎉 Special Offers</h1>
+              <div class="subtitle">Scan karo, save karo</div>
+              <img src="${vendor.qr_code_url}" alt="QR Code" />
+              <p class="instructions">Camera se scan karein</p>
+              <div class="tagline">${vendor.name}</div>
+              <div class="branding">Powered by XNEX Retail.io</div>
+            </div>
+          </body>
+        </html>
+      `;
+    }
+
+    const printWindow = window.open('', '', 'width=600,height=700');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    setShowQRLayouts(false);
   };
 
   const handleImageUpload = async (file: File) => {
@@ -786,10 +1119,10 @@ export default function VendorDashboard() {
                 🎫 Redeem
               </button>
               <button
-                onClick={() => router.push('/vendor/redemption-scanner')}
+                onClick={() => setShowQRLayouts(true)}
                 className="bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
               >
-                📸 Scanner
+                🎨 Design QR
               </button>
               <button
                 onClick={() => router.push('/vendor/redemption-stats')}
@@ -946,6 +1279,150 @@ export default function VendorDashboard() {
           </div>
         )}
         </div>
+
+        {/* QR Code Layouts Modal */}
+        {showQRLayouts && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl w-full max-w-4xl overflow-hidden my-8">
+              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-bold">🎨 Choose Your QR Code Design</h3>
+                  <button
+                    onClick={() => setShowQRLayouts(false)}
+                    className="text-white hover:bg-white/20 rounded-lg p-2 text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Layout 1 - Blue */}
+                  <div 
+                    onClick={() => setSelectedQRLayout('layout1')}
+                    className={`cursor-pointer p-4 rounded-lg border-4 transition ${
+                      selectedQRLayout === 'layout1' 
+                        ? 'border-indigo-600 bg-indigo-50' 
+                        : 'border-gray-200 bg-gray-50 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg p-6 text-white text-center mb-3 h-48 flex flex-col justify-center items-center">
+                      <h4 className="text-xl font-bold text-yellow-400">Discount Ka QR</h4>
+                      <p className="text-sm italic text-blue-100">Scan karo, discount lo</p>
+                      <div className="mt-3 bg-white p-2 rounded">
+                        <div className="w-20 h-20 bg-gray-300 mx-auto"></div>
+                      </div>
+                      <p className="text-sm mt-3 text-white font-bold">No app. Sirf scan.</p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        printQRLayout('layout1');
+                      }}
+                      className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
+                    >
+                      💙 Print Blue Design
+                    </button>
+                  </div>
+
+                  {/* Layout 2 - Green */}
+                  <div 
+                    onClick={() => setSelectedQRLayout('layout2')}
+                    className={`cursor-pointer p-4 rounded-lg border-4 transition ${
+                      selectedQRLayout === 'layout2' 
+                        ? 'border-indigo-600 bg-indigo-50' 
+                        : 'border-gray-200 bg-gray-50 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div className="bg-gradient-to-br from-green-900 to-green-700 rounded-lg p-6 text-white text-center mb-3 h-48 flex flex-col justify-center items-center">
+                      <h4 className="text-xl font-bold text-yellow-400">Discount Ka QR</h4>
+                      <p className="text-sm italic text-green-100">Scan karo, discount lo</p>
+                      <div className="mt-3 bg-white p-2 rounded">
+                        <div className="w-20 h-20 bg-gray-300 mx-auto"></div>
+                      </div>
+                      <p className="text-sm mt-3 text-white font-bold">No app. Sirf scan.</p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        printQRLayout('layout2');
+                      }}
+                      className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700"
+                    >
+                      💚 Print Green Design
+                    </button>
+                  </div>
+
+                  {/* Layout 3 - Modern Purple */}
+                  <div 
+                    onClick={() => setSelectedQRLayout('layout3')}
+                    className={`cursor-pointer p-4 rounded-lg border-4 transition ${
+                      selectedQRLayout === 'layout3' 
+                        ? 'border-indigo-600 bg-indigo-50' 
+                        : 'border-gray-200 bg-gray-50 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div className="bg-white border-4 border-purple-600 rounded-lg p-6 text-center mb-3 h-48 flex flex-col justify-center items-center">
+                      <h4 className="text-xl font-bold text-purple-600">✨ Get Offers</h4>
+                      <p className="text-sm font-semibold text-purple-500">Scan to unlock amazing discounts</p>
+                      <div className="mt-3 bg-gray-200 p-2 rounded">
+                        <div className="w-20 h-20 bg-gray-400 mx-auto"></div>
+                      </div>
+                      <p className="text-sm mt-3 text-purple-600 font-bold">📱 Scan with your phone</p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        printQRLayout('layout3');
+                      }}
+                      className="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700"
+                    >
+                      💜 Print Modern Design
+                    </button>
+                  </div>
+
+                  {/* Layout 4 - Red */}
+                  <div 
+                    onClick={() => setSelectedQRLayout('layout4')}
+                    className={`cursor-pointer p-4 rounded-lg border-4 transition ${
+                      selectedQRLayout === 'layout4' 
+                        ? 'border-indigo-600 bg-indigo-50' 
+                        : 'border-gray-200 bg-gray-50 hover:border-indigo-400'
+                    }`}
+                  >
+                    <div className="bg-gradient-to-br from-red-900 to-red-700 rounded-lg p-6 text-white text-center mb-3 h-48 flex flex-col justify-center items-center">
+                      <h4 className="text-xl font-bold text-yellow-200">🎉 Special Offers</h4>
+                      <p className="text-sm italic text-red-100">Scan karo, save karo</p>
+                      <div className="mt-3 bg-white p-2 rounded">
+                        <div className="w-20 h-20 bg-gray-300 mx-auto"></div>
+                      </div>
+                      <p className="text-sm mt-3 text-white font-bold">Camera se scan karein</p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        printQRLayout('layout4');
+                      }}
+                      className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700"
+                    >
+                      ❤️ Print Red Design
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 justify-end border-t pt-4">
+                  <button
+                    onClick={() => setShowQRLayouts(false)}
+                    className="px-6 py-2 bg-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-400"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Contact Admin Modal */}
         {showContactAdmin && (
