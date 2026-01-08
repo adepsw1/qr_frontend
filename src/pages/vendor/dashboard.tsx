@@ -274,88 +274,101 @@ export default function VendorDashboard() {
 
     try {
       setUploadingImage(true);
-      setUploadProgress(5); // Start at 5% to show activity
-      console.log('🔄 Starting upload for file:', file.name);
+      setUploadProgress(5);
+      console.log('🔄 Starting upload for file:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
       
-      const reader = new FileReader();
+      // Compress image first (0-30% progress)
+      setUploadProgress(10);
+      console.log('🖼️ Compressing image...');
       
-      reader.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          const progress = Math.min(Math.floor(percentComplete * 0.4), 40); // File reading is 0-40%
-          setUploadProgress(progress);
-          console.log('📖 File reading progress:', progress);
-        }
-      };
-      
-      reader.onload = async () => {
-        console.log('✅ File read complete, starting upload...');
-        setUploadProgress(40); // File read done, now uploading
+      const compressedBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
         
-        const base64String = reader.result as string;
-        const token = localStorage.getItem('accessToken');
-        const vendorId = localStorage.getItem('vendorId');
-
-        try {
-          const uploadRes = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/${vendorId}/upload-image`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                imageData: base64String,
-                fileName: `${uploadType}-${Date.now()}.png`,
-                type: uploadType,
-              }),
-            },
-          );
-
-          setUploadProgress(80); // Upload done, processing response
-          
-          if (uploadRes.ok) {
-            const result = await uploadRes.json();
-            console.log('🎉 Upload successful:', result);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
             
-            // Update vendor state with new image
-            if (vendor) {
-              setVendor({
-                ...vendor,
-                [uploadType === 'profile' ? 'profile_image' : 'store_image']: result.url,
-              });
+            // Resize if larger than 1200px
+            if (width > 1200 || height > 1200) {
+              const scale = Math.min(1200 / width, 1200 / height);
+              width = Math.floor(width * scale);
+              height = Math.floor(height * scale);
             }
             
-            setUploadProgress(100);
-            // Keep modal open for 1 second to show 100% completion
-            setTimeout(() => {
-              alert(`✅ ${uploadType === 'profile' ? 'Profile' : 'Banner'} photo uploaded successfully!`);
-              setShowImageModal(false);
-              setUploadType(null);
-              setUploadProgress(0);
-              setUploadingImage(false);
-            }, 1000);
-          } else {
-            const error = await uploadRes.json();
-            console.error('❌ Upload failed:', error);
-            alert(`❌ Upload failed: ${error.message || 'Unknown error'}`);
-            setUploadingImage(false);
-          }
-        } catch (fetchErr: any) {
-          console.error('❌ Fetch error:', fetchErr);
-          alert(`❌ Upload error: ${fetchErr.message}`);
-          setUploadingImage(false);
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              // Compress with quality 0.7-0.8
+              const compressed = canvas.toDataURL('image/jpeg', 0.75);
+              setUploadProgress(30);
+              console.log('✅ Image compressed. Original:', (file.size / 1024).toFixed(1), 'KB');
+              resolve(compressed);
+            }
+          };
+          img.onerror = () => reject(new Error('Failed to load image'));
+          img.src = e.target?.result as string;
+        };
+        
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
+      
+      setUploadProgress(40);
+      console.log('📤 Uploading to server...');
+      
+      const token = localStorage.getItem('accessToken');
+      const vendorId = localStorage.getItem('vendorId');
+
+      const uploadRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/${vendorId}/upload-image`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: compressedBase64,
+            fileName: `${uploadType}-${Date.now()}.jpg`,
+            type: uploadType,
+          }),
+        },
+      );
+
+      setUploadProgress(85);
+      
+      if (uploadRes.ok) {
+        const result = await uploadRes.json();
+        console.log('🎉 Upload successful:', result);
+        
+        // Update vendor state with new image
+        if (vendor) {
+          setVendor({
+            ...vendor,
+            [uploadType === 'profile' ? 'profile_image' : 'store_image']: result.data?.imageUrl || result.url,
+          });
         }
-      };
-      
-      reader.onerror = () => {
-        console.error('❌ File read error');
-        alert('❌ Failed to read file');
+        
+        setUploadProgress(100);
+        // Keep modal open for 1 second to show 100% completion
+        setTimeout(() => {
+          alert(`✅ ${uploadType === 'profile' ? 'Profile' : 'Banner'} photo uploaded successfully!`);
+          setShowImageModal(false);
+          setUploadType(null);
+          setUploadProgress(0);
+          setUploadingImage(false);
+        }, 1000);
+      } else {
+        const error = await uploadRes.json();
+        console.error('❌ Upload failed:', error);
+        alert(`❌ Upload failed: ${error.message || 'Unknown error'}`);
         setUploadingImage(false);
-      };
-      
-      reader.readAsDataURL(file);
+      }
     } catch (err: any) {
       console.error('Error uploading image:', err);
       alert(`❌ Error uploading image: ${err.message}`);
