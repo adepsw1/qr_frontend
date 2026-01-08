@@ -47,6 +47,12 @@ export default function VendorDashboard() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpMessage, setOtpMessage] = useState('');
   const [otpSuccess, setOtpSuccess] = useState(false);
+  
+  // Image upload states
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [uploadType, setUploadType] = useState<'profile' | 'banner' | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     fetchDashboardData();
@@ -263,6 +269,74 @@ export default function VendorDashboard() {
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!uploadType) return;
+
+    try {
+      setUploadingImage(true);
+      setUploadProgress(0);
+      
+      const reader = new FileReader();
+      
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          setUploadProgress(Math.floor(percentComplete));
+        }
+      };
+      
+      reader.onload = async () => {
+        const base64String = reader.result as string;
+        const token = localStorage.getItem('accessToken');
+        const vendorId = localStorage.getItem('vendorId');
+
+        const uploadRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/${vendorId}/upload-image`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              imageData: base64String,
+              filename: `${uploadType}-${Date.now()}.png`,
+              type: uploadType,
+            }),
+          },
+        );
+
+        if (uploadRes.ok) {
+          const result = await uploadRes.json();
+          
+          // Update vendor state with new image
+          if (vendor) {
+            setVendor({
+              ...vendor,
+              [uploadType === 'profile' ? 'profile_image' : 'store_image']: result.url,
+            });
+          }
+          
+          setUploadProgress(100);
+          alert(`✅ ${uploadType === 'profile' ? 'Profile' : 'Banner'} photo uploaded successfully!`);
+          setShowImageModal(false);
+          setUploadType(null);
+          setUploadProgress(0);
+        } else {
+          const error = await uploadRes.json();
+          alert(`❌ Upload failed: ${error.message || 'Unknown error'}`);
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      console.error('Error uploading image:', err);
+      alert(`❌ Error uploading image: ${err.message}`);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -323,7 +397,10 @@ export default function VendorDashboard() {
                   <div className="text-center text-white">
                     <p className="text-lg font-semibold">📸 Add Banner Photo</p>
                     <button
-                      onClick={() => router.push('/vendor/profile')}
+                      onClick={() => {
+                        setUploadType('banner');
+                        setShowImageModal(true);
+                      }}
                       className="mt-3 bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition"
                     >
                       Upload Banner
@@ -353,7 +430,10 @@ export default function VendorDashboard() {
               {/* Profile Photo Upload Button */}
               <div className="text-center mb-6">
                 <button
-                  onClick={() => router.push('/vendor/profile')}
+                  onClick={() => {
+                    setUploadType('profile');
+                    setShowImageModal(true);
+                  }}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
                 >
                   📸 Edit Photos
@@ -361,7 +441,7 @@ export default function VendorDashboard() {
               </div>
 
               {/* OTP Redemption Form - New Section */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 max-w-md mx-auto mb-12">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 max-w-md mx-auto mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">🎟️ Quick OTP Redemption</h3>
                 <form onSubmit={handleRedeemOTP} className="space-y-4">
                   <div>
@@ -399,6 +479,26 @@ export default function VendorDashboard() {
                     Customers will receive OTP codes when they participate in your offers
                   </p>
                 </form>
+              </div>
+
+              {/* Redemption Tracking Buttons */}
+              <div className="max-w-md mx-auto mb-12">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => router.push('/vendor/redemption?period=today')}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-bold hover:from-orange-600 hover:to-red-600 transition flex flex-col items-center gap-1"
+                  >
+                    <span className="text-xl">📅</span>
+                    <span className="text-sm">Today's Redemption</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/vendor/redemption?period=weekly')}
+                    className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:from-purple-600 hover:to-indigo-600 transition flex flex-col items-center gap-1"
+                  >
+                    <span className="text-xl">📊</span>
+                    <span className="text-sm">Weekly Redemption</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -583,8 +683,7 @@ export default function VendorDashboard() {
           </div>
 
           {/* Section 8: Logout */}
-          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mt-12">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">🚪 Account</h2>
+          <div className="flex justify-center mt-12 mb-8">
             <button
               onClick={() => {
                 if (confirm('Are you sure you want to logout?')) {
@@ -592,11 +691,71 @@ export default function VendorDashboard() {
                   window.location.href = '/vendor/login';
                 }
               }}
-              className="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2 text-lg"
+              className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition text-sm"
             >
               🚪 Logout
             </button>
           </div>
+
+          {/* Image Upload Modal */}
+          {showImageModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  📸 Upload {uploadType === 'profile' ? 'Profile' : 'Banner'} Photo
+                </h2>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Select Image:</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleImageUpload(file);
+                      }
+                    }}
+                    disabled={uploadingImage}
+                    className="w-full px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg text-gray-700 cursor-pointer hover:border-blue-600 transition disabled:opacity-50"
+                  />
+                </div>
+
+                {uploadingImage && (
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-semibold text-gray-700">Uploading...</span>
+                      <span className="text-sm font-bold text-blue-600">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div 
+                        className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowImageModal(false);
+                      setUploadType(null);
+                      setUploadProgress(0);
+                    }}
+                    disabled={uploadingImage}
+                    className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                <p className="text-xs text-gray-600 text-center mt-4">
+                  ✅ Select an image and it will be uploaded automatically
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
