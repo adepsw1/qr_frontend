@@ -232,7 +232,7 @@ export default function VendorDashboard() {
       const vendorId = localStorage.getItem('vendorId');
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/redemption/verify-otp`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/redemption/verify-otp-for-vendor`,
         {
           method: 'POST',
           headers: {
@@ -241,7 +241,7 @@ export default function VendorDashboard() {
           },
           body: JSON.stringify({
             otp: otpInput.trim(),
-            vendor_id: vendorId,
+            vendorId: vendorId,
           }),
         },
       );
@@ -274,65 +274,91 @@ export default function VendorDashboard() {
 
     try {
       setUploadingImage(true);
-      setUploadProgress(0);
+      setUploadProgress(5); // Start at 5% to show activity
+      console.log('🔄 Starting upload for file:', file.name);
       
       const reader = new FileReader();
       
       reader.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentComplete = (event.loaded / event.total) * 100;
-          setUploadProgress(Math.floor(percentComplete));
+          const progress = Math.min(Math.floor(percentComplete * 0.4), 40); // File reading is 0-40%
+          setUploadProgress(progress);
+          console.log('📖 File reading progress:', progress);
         }
       };
       
       reader.onload = async () => {
+        console.log('✅ File read complete, starting upload...');
+        setUploadProgress(40); // File read done, now uploading
+        
         const base64String = reader.result as string;
         const token = localStorage.getItem('accessToken');
         const vendorId = localStorage.getItem('vendorId');
 
-        const uploadRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/${vendorId}/upload-image`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
+        try {
+          const uploadRes = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/${vendorId}/upload-image`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                imageData: base64String,
+                fileName: `${uploadType}-${Date.now()}.png`,
+                type: uploadType,
+              }),
             },
-            body: JSON.stringify({
-              imageData: base64String,
-              filename: `${uploadType}-${Date.now()}.png`,
-              type: uploadType,
-            }),
-          },
-        );
+          );
 
-        if (uploadRes.ok) {
-          const result = await uploadRes.json();
+          setUploadProgress(80); // Upload done, processing response
           
-          // Update vendor state with new image
-          if (vendor) {
-            setVendor({
-              ...vendor,
-              [uploadType === 'profile' ? 'profile_image' : 'store_image']: result.url,
-            });
+          if (uploadRes.ok) {
+            const result = await uploadRes.json();
+            console.log('🎉 Upload successful:', result);
+            
+            // Update vendor state with new image
+            if (vendor) {
+              setVendor({
+                ...vendor,
+                [uploadType === 'profile' ? 'profile_image' : 'store_image']: result.url,
+              });
+            }
+            
+            setUploadProgress(100);
+            // Keep modal open for 1 second to show 100% completion
+            setTimeout(() => {
+              alert(`✅ ${uploadType === 'profile' ? 'Profile' : 'Banner'} photo uploaded successfully!`);
+              setShowImageModal(false);
+              setUploadType(null);
+              setUploadProgress(0);
+              setUploadingImage(false);
+            }, 1000);
+          } else {
+            const error = await uploadRes.json();
+            console.error('❌ Upload failed:', error);
+            alert(`❌ Upload failed: ${error.message || 'Unknown error'}`);
+            setUploadingImage(false);
           }
-          
-          setUploadProgress(100);
-          alert(`✅ ${uploadType === 'profile' ? 'Profile' : 'Banner'} photo uploaded successfully!`);
-          setShowImageModal(false);
-          setUploadType(null);
-          setUploadProgress(0);
-        } else {
-          const error = await uploadRes.json();
-          alert(`❌ Upload failed: ${error.message || 'Unknown error'}`);
+        } catch (fetchErr: any) {
+          console.error('❌ Fetch error:', fetchErr);
+          alert(`❌ Upload error: ${fetchErr.message}`);
+          setUploadingImage(false);
         }
+      };
+      
+      reader.onerror = () => {
+        console.error('❌ File read error');
+        alert('❌ Failed to read file');
+        setUploadingImage(false);
       };
       
       reader.readAsDataURL(file);
     } catch (err: any) {
       console.error('Error uploading image:', err);
       alert(`❌ Error uploading image: ${err.message}`);
-    } finally {
       setUploadingImage(false);
     }
   };
