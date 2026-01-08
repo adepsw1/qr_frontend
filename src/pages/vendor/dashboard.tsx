@@ -18,6 +18,8 @@ interface VendorProfile {
   city: string;
   address: string;
   qr_code_url: string;
+  profile_image?: string;
+  store_image?: string;
 }
 
 interface AcceptedOfferRow {
@@ -217,53 +219,25 @@ export default function VendorDashboard() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-slate-950/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-xl border-b border-indigo-500/20 shadow-2xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h1 className="text-3xl font-black text-white">Vendor Dashboard</h1>
-                <p className="text-indigo-300 text-sm mt-1">Welcome back, {vendor?.name || 'Vendor'}!</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto flex-wrap">
+      <div className="min-h-screen bg-white">
+        {/* Top Bar with Contact Admin & Logout */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-gray-900">{vendor?.name || 'Vendor Dashboard'}</h1>
+              <div className="flex gap-3">
                 <button
-                  onClick={() => router.push('/')}
-                  className="bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white px-4 py-2 rounded-lg transition font-bold text-sm"
+                  onClick={() => alert('Contact Admin: admin@example.com')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold transition"
                 >
-                  🏠 Home
-
-                </button>
-                <button
-                  onClick={() => router.push('/vendor/profile')}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-bold transition text-sm"
-                >
-                  ⚙️ Profile
-                </button>
-                <button
-                  onClick={() => router.push('/vendor/products')}
-                  className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-bold transition text-sm"
-                >
-                  🛍️ Products
-                </button>
-                <button
-                  onClick={() => router.push('/vendor/redemption')}
-                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-4 py-2 rounded-lg font-bold transition text-sm"
-                >
-                  🎫 Redeem
-                </button>
-                <button
-                  onClick={() => router.push('/vendor/qrcode')}
-                  className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-bold transition text-sm"
-                >
-                  📱 QR Code
+                  ☎️ Contact Admin
                 </button>
                 <button
                   onClick={() => {
                     localStorage.clear();
                     window.location.href = '/';
                   }}
-                  className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-4 py-2 rounded-lg font-bold transition text-sm"
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-semibold transition"
                 >
                   Logout
                 </button>
@@ -272,198 +246,264 @@ export default function VendorDashboard() {
           </div>
         </div>
 
-        {/* Stats */}
-        {stats && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="bg-gradient-to-br from-violet-900/50 to-indigo-900/50 border border-indigo-500/30 rounded-lg sm:rounded-xl p-6">
-                <p className="text-indigo-300 text-sm">Accepted Offers</p>
-                <p className="text-3xl lg:text-4xl font-black text-violet-400 mt-2">{stats.accepted_offers}</p>
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+          {/* Section 1: Banner & Profile Photo */}
+          <div className="mb-12">
+            <div className="relative mb-8">
+              {/* Banner */}
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl h-48 flex items-center justify-center relative overflow-hidden">
+                {vendor?.store_image ? (
+                  <img 
+                    src={vendor.store_image} 
+                    alt="Store Banner" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center text-white">
+                    <p className="text-lg font-semibold">📸 Add Banner Photo</p>
+                    <button
+                      onClick={() => router.push('/vendor/profile')}
+                      className="mt-3 bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition"
+                    >
+                      Upload Banner
+                    </button>
+                  </div>
+                )}
               </div>
-              <div className="bg-gradient-to-br from-indigo-900/50 to-blue-900/50 border border-indigo-500/30 rounded-lg sm:rounded-xl p-6">
-                <p className="text-indigo-300 text-sm">Pending Offers</p>
-                <p className="text-3xl lg:text-4xl font-black text-indigo-400 mt-2">{stats.pending_offers}</p>
+
+              {/* Profile Photo - Overlapping Circle */}
+              <div className="flex justify-center -mt-20 relative z-10 mb-6">
+                <div className="w-40 h-40 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center shadow-lg overflow-hidden">
+                  {vendor?.profile_image ? (
+                    <img 
+                      src={vendor.profile_image} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <p className="text-4xl">👤</p>
+                      <p className="text-xs text-gray-600 mt-1">Add Profile Photo</p>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-blue-900/50 to-purple-900/50 border border-indigo-500/30 rounded-lg sm:rounded-xl p-6">
-                <p className="text-indigo-300 text-sm">Messages Sent</p>
-                <p className="text-3xl lg:text-4xl font-black text-blue-400 mt-2">{stats.total_messages_sent}</p>
-              </div>
-              <div className="bg-gradient-to-br from-purple-900/50 to-violet-900/50 border border-indigo-500/30 rounded-lg sm:rounded-xl p-6">
-                <p className="text-indigo-300 text-sm">Delivery Rate</p>
-                <p className="text-3xl lg:text-4xl font-black text-purple-400 mt-2">{stats.delivery_rate}%</p>
+
+              {/* Profile Photo Upload Button */}
+              <div className="text-center mb-6">
+                <button
+                  onClick={() => router.push('/vendor/profile')}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  📸 Edit Photos
+                </button>
               </div>
             </div>
           </div>
-        )}
 
-        {/* QR Code Section */}
-        {vendor && vendor.qr_code_url && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-lg p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                {/* QR Code Display */}
-                <div className="bg-white rounded-lg p-6 flex flex-col items-center">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">📱 Your QR Code</h3>
+          {/* Section 2: OTP Redemption Window */}
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">🎟️ OTP Redemption Window</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
+                <p className="text-sm text-gray-600">Total Redemptions</p>
+                <p className="text-3xl font-bold text-blue-600">{stats?.accepted_offers || 0}</p>
+              </div>
+              <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                <p className="text-sm text-gray-600">Today's Redemptions</p>
+                <p className="text-3xl font-bold text-green-600">0</p>
+              </div>
+              <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+                <p className="text-sm text-gray-600">Pending Verifications</p>
+                <p className="text-3xl font-bold text-purple-600">{stats?.pending_offers || 0}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push('/vendor/redemption')}
+              className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              🎫 Go to Redemption Scanner
+            </button>
+          </div>
+
+          {/* Section 3: Add Products */}
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">🛍️ Product Management</h2>
+            <p className="text-gray-600 mb-4">Manage your store products and inventory</p>
+            <button
+              onClick={() => router.push('/vendor/products')}
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+            >
+              + Add Products
+            </button>
+          </div>
+
+          {/* Section 4: Customer Retention */}
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">👥 Customer Retention</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 text-center">
+                <p className="text-sm text-gray-600">New Customers</p>
+                <p className="text-3xl font-bold text-orange-600">0</p>
+              </div>
+              <div className="bg-pink-50 border border-pink-300 rounded-lg p-4 text-center">
+                <p className="text-sm text-gray-600">Returning Customers</p>
+                <p className="text-3xl font-bold text-pink-600">0</p>
+              </div>
+              <div className="bg-red-50 border border-red-300 rounded-lg p-4 text-center">
+                <p className="text-sm text-gray-600">Total Unique Customers</p>
+                <p className="text-3xl font-bold text-red-600">0</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 5: Offers Status */}
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">📢 Offers Status</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-indigo-50 border border-indigo-300 rounded-lg p-4 text-center">
+                <p className="text-sm text-gray-600">Active Offers</p>
+                <p className="text-3xl font-bold text-indigo-600">{acceptedOffers.length}</p>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 text-center">
+                <p className="text-sm text-gray-600">Pending Offers</p>
+                <p className="text-3xl font-bold text-yellow-600">{pendingOffers.length}</p>
+              </div>
+              <div className="bg-teal-50 border border-teal-300 rounded-lg p-4 text-center">
+                <p className="text-sm text-gray-600">Customers Sent To</p>
+                <p className="text-3xl font-bold text-teal-600">{stats?.total_messages_sent || 0}</p>
+              </div>
+            </div>
+
+            {/* Pending Offers List */}
+            {pendingOffers.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-bold text-gray-900 mb-3">⏳ Pending Offers</h3>
+                <div className="space-y-3">
+                  {pendingOffers.map((offer: any) => (
+                    <div key={offer.id} className="bg-yellow-50 border border-yellow-300 p-4 rounded-lg flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-gray-900">{offer.title}</p>
+                        <p className="text-sm text-gray-600">{offer.description}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAcceptOffer(offer.id)}
+                          className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700"
+                        >
+                          ✅ Accept
+                        </button>
+                        <button
+                          onClick={() => handleRejectOffer(offer.id)}
+                          className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700"
+                        >
+                          ❌ Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Section 6: QR Code Management */}
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">📱 QR Code & QR Link</h2>
+            {vendor && vendor.qr_code_url ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white border border-gray-300 rounded-lg p-6 flex flex-col items-center">
                   <img 
                     src={vendor.qr_code_url} 
                     alt="Vendor QR Code" 
-                    style={{ width: '280px', height: '280px' }}
-                    className="rounded-lg border-4 border-indigo-600"
+                    style={{ width: '200px', height: '200px' }}
+                    className="rounded-lg border-2 border-blue-600 mb-4"
                   />
-                  <p className="text-sm text-gray-600 mt-4 text-center">
-                    Customers scan this QR code to view your offers
+                  <p className="text-sm text-gray-600 text-center mb-3">
+                    Scan to view your offers
                   </p>
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = vendor.qr_code_url;
+                      link.download = `qr-code-${vendor.id}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition mb-2"
+                  >
+                    📥 Download
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="w-full bg-gray-600 text-white py-2 rounded-lg font-semibold hover:bg-gray-700 transition"
+                  >
+                    🖨️ Print
+                  </button>
                 </div>
 
-                {/* QR Code Info & Actions */}
-                <div className="text-white">
-                  <h3 className="text-3xl font-bold mb-4">🎯 Share Your QR Code</h3>
-                  <p className="text-indigo-100 mb-6">
-                    Display this QR code in your store so customers can easily access your offers.
-                  </p>
-
-                  <div className="bg-white bg-opacity-10 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-indigo-100 mb-2">Vendor ID</p>
-                    <p className="text-lg font-mono font-bold text-white">{vendor.id}</p>
+                <div className="flex flex-col justify-center">
+                  <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-gray-600">Vendor ID</p>
+                    <p className="text-lg font-mono font-bold text-gray-900">{vendor.id}</p>
                   </div>
-
-                  <div className="bg-white bg-opacity-10 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-indigo-100 mb-2">Business</p>
-                    <p className="text-lg font-bold text-white">{vendor.name}</p>
-                    <p className="text-sm text-indigo-100">{vendor.address}</p>
+                  <div className="bg-green-50 border border-green-300 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-gray-600">Business Name</p>
+                    <p className="text-lg font-bold text-gray-900">{vendor.name}</p>
                   </div>
-
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = vendor.qr_code_url;
-                        link.download = `qr-code-${vendor.id}.png`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                      className="w-full bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition flex items-center justify-center gap-2"
-                    >
-                      📥 Download QR Code
-                    </button>
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-800 transition flex items-center justify-center gap-2"
-                    >
-                      🖨️ Print QR Code
-                    </button>
+                  <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+                    <p className="text-sm text-gray-600">Address</p>
+                    <p className="text-sm font-semibold text-gray-900">{vendor.address}, {vendor.city}</p>
                   </div>
                 </div>
               </div>
+            ) : (
+              <div className="bg-gray-100 border border-gray-300 rounded-lg p-6 text-center">
+                <p className="text-gray-600">QR Code will be generated once your profile is complete</p>
+                <button
+                  onClick={() => router.push('/vendor/profile')}
+                  className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700"
+                >
+                  Complete Profile
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Section 7: Quick Actions */}
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">⚡ Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <button
+                onClick={() => router.push('/vendor/profile')}
+                className="bg-cyan-600 text-white py-3 rounded-lg font-semibold hover:bg-cyan-700 transition"
+              >
+                ⚙️ Profile
+              </button>
+              <button
+                onClick={() => router.push('/vendor/products')}
+                className="bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+              >
+                🛍️ Products
+              </button>
+              <button
+                onClick={() => router.push('/vendor/redemption')}
+                className="bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition"
+              >
+                🎫 Redeem
+              </button>
+              <button
+                onClick={() => router.push('/vendor/redemption-scanner')}
+                className="bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
+              >
+                📸 Scanner
+              </button>
             </div>
           </div>
-        )}
-
-        {/* Pending Offers */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Pending Offers</h2>
-
-          {error && <div className="p-4 bg-red-50 text-red-600 rounded-lg mb-4">{error}</div>}
-
-          {pendingOffers.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-600">No pending offers</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pendingOffers.map((offer: any) => (
-                <div key={offer.id} className="bg-white rounded-lg shadow p-6">
-                  {offer.image_url && (
-                    <img src={offer.image_url} alt={offer.title} className="w-full h-40 object-cover rounded-lg mb-4" />
-                  )}
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{offer.title}</h3>
-                  <p className="text-gray-600 text-sm mb-3">{offer.description}</p>
-                  <p className="text-sm text-gray-500 mb-4">Expires: {new Date(offer.expiry_date).toLocaleDateString()}</p>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleAcceptOffer(offer.id)}
-                      className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-semibold"
-                    >
-                      ✅ Accept
-                    </button>
-                    <button
-                      onClick={() => handleRejectOffer(offer.id)}
-                      className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-semibold"
-                    >
-                      ❌ Reject
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
-
-        {/* Accepted Offers Table */}
-        {acceptedOffers.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">✅ Accepted Offers</h2>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Offer Title
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Details
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Send Count
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {acceptedOffers.map((offer) => (
-                      <tr key={offer.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-semibold text-gray-900">{offer.title}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-600">{offer.description.substring(0, 50)}...</span>
-                          <div className="text-xs text-gray-400 mt-1">Category: {offer.category}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-600">
-                            {new Date(offer.created_at).toLocaleDateString()}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-800 font-semibold text-sm">
-                            {offer.send_count}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            offer.status === 'sent'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {offer.status === 'sent' ? '✅ Sent' : '⏳ Pending'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
