@@ -706,105 +706,130 @@ export default function VendorDashboard() {
           {/* Image Upload/Management Modal */}
         {showImageModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 📸 {uploadType === 'profile' ? 'Profile' : 'Banner'} Photo
               </h2>
               
-              <div className="space-y-3">
-                {/* Upload/Update Button */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Select Image:</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleImageUpload(file);
-                      }
-                    }}
-                    disabled={uploadingImage}
-                    className="w-full px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg text-gray-700 cursor-pointer hover:border-blue-600 transition disabled:opacity-50"
-                  />
-                </div>
-
-                {uploadingImage && (
+              {!uploadingImage ? (
+                <div className="space-y-4">
+                  {/* Upload/Update Button */}
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-semibold text-gray-700">Uploading...</span>
-                      <span className="text-sm font-bold text-blue-600">{uploadProgress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Select Image to Upload:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleImageUpload(file);
+                        }
+                      }}
+                      disabled={uploadingImage}
+                      className="w-full px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg text-gray-700 cursor-pointer hover:border-blue-600 transition"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    {/* Remove Button - Only show if image exists */}
+                    {uploadType === 'profile' && vendor?.profile_image && (
+                      <button
+                        onClick={() => {
+                          if (confirm('Remove profile photo?')) {
+                            if (vendor) {
+                              setVendor({
+                                ...vendor,
+                                profile_image: undefined,
+                              });
+                            }
+                            setShowImageModal(false);
+                            setUploadType(null);
+                          }
+                        }}
+                        disabled={uploadingImage}
+                        className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                      >
+                        🗑️ Remove
+                      </button>
+                    )}
+                    {uploadType === 'banner' && vendor?.store_image && (
+                      <button
+                        onClick={() => {
+                          if (confirm('Remove banner photo?')) {
+                            if (vendor) {
+                              setVendor({
+                                ...vendor,
+                                store_image: undefined,
+                              });
+                            }
+                            setShowImageModal(false);
+                            setUploadType(null);
+                          }
+                        }}
+                        disabled={uploadingImage}
+                        className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                      >
+                        🗑️ Remove
+                      </button>
+                    )}
+                    
+                    {/* Close Button */}
+                    <button
+                      onClick={() => {
+                        setShowImageModal(false);
+                        setUploadType(null);
+                        setUploadProgress(0);
+                      }}
+                      disabled={uploadingImage}
+                      className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition disabled:opacity-50"
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-gray-600 text-center mt-4">
+                    ✅ Select an image to update, or remove the existing one
+                  </p>
+                </div>
+              ) : (
+                <div className="py-8">
+                  <div className="mb-6 text-center">
+                    <p className="text-lg font-bold text-gray-900 mb-2">Uploading {uploadType === 'profile' ? 'Profile' : 'Banner'} Photo...</p>
+                    <p className="text-sm text-gray-600">Please wait while we upload your image</p>
+                  </div>
+
+                  {/* Large Progress Bar */}
+                  <div className="mb-6">
+                    <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden shadow">
                       <div 
-                        className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-6 rounded-full transition-all duration-300 flex items-center justify-center"
                         style={{ width: `${uploadProgress}%` }}
-                      ></div>
+                      >
+                        {uploadProgress > 10 && (
+                          <span className="text-white text-xs font-bold">{uploadProgress}%</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
 
-              <div className="flex gap-3 mt-6">
-                {/* Remove Button - Only show if image exists */}
-                {uploadType === 'profile' && vendor?.profile_image && (
-                  <button
-                    onClick={() => {
-                      if (confirm('Remove profile photo?')) {
-                        if (vendor) {
-                          setVendor({
-                            ...vendor,
-                            profile_image: undefined,
-                          });
-                        }
-                        setShowImageModal(false);
-                        setUploadType(null);
-                      }
-                    }}
-                    disabled={uploadingImage}
-                    className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
-                  >
-                    🗑️ Remove
-                  </button>
-                )}
-                {uploadType === 'banner' && vendor?.store_image && (
-                  <button
-                    onClick={() => {
-                      if (confirm('Remove banner photo?')) {
-                        if (vendor) {
-                          setVendor({
-                            ...vendor,
-                            store_image: undefined,
-                          });
-                        }
-                        setShowImageModal(false);
-                        setUploadType(null);
-                      }
-                    }}
-                    disabled={uploadingImage}
-                    className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
-                  >
-                    🗑️ Remove
-                  </button>
-                )}
-                
-                {/* Close Button */}
-                <button
-                  onClick={() => {
-                    setShowImageModal(false);
-                    setUploadType(null);
-                    setUploadProgress(0);
-                  }}
-                  disabled={uploadingImage}
-                  className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition disabled:opacity-50"
-                >
-                  Close
-                </button>
-              </div>
+                  {/* Large Percentage Display */}
+                  <div className="text-center mb-6">
+                    <p className="text-5xl font-bold text-blue-600">{uploadProgress}%</p>
+                    <p className="text-gray-600 text-sm mt-2">Upload in progress...</p>
+                  </div>
 
-              <p className="text-xs text-gray-600 text-center mt-4">
-                ✅ Select an image to update, or remove the existing one
-              </p>
+                  {/* Animated Dots */}
+                  <div className="text-center">
+                    <div className="inline-block">
+                      <span className="text-2xl text-gray-400">
+                        <span className="inline-block animate-bounce" style={{animationDelay: '0s'}}>●</span>
+                        <span className="inline-block animate-bounce mx-1" style={{animationDelay: '0.2s'}}>●</span>
+                        <span className="inline-block animate-bounce" style={{animationDelay: '0.4s'}}>●</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
