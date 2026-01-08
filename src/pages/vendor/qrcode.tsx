@@ -20,6 +20,7 @@ export default function VendorQRCodePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [selectedLayout, setSelectedLayout] = useState<'layout1' | 'layout2' | 'layout3' | 'layout4'>('layout1');
 
   useEffect(() => {
     fetchVendorData();
@@ -77,9 +78,11 @@ export default function VendorQRCodePage() {
     // This creates a printable view with the QR code
     if (!vendor?.qr_code_url) return;
     
-    const printWindow = window.open('', '', 'width=600,height=700');
-    if (printWindow) {
-      printWindow.document.write(`
+    let htmlContent = '';
+    
+    if (selectedLayout === 'layout1') {
+      // Blue Layout with heading
+      htmlContent = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -95,35 +98,49 @@ export default function VendorQRCodePage() {
                 background: #f5f5f5;
               }
               .container {
-                background: white;
-                padding: 40px;
+                background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+                padding: 50px;
                 border-radius: 10px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);
                 text-align: center;
-                max-width: 400px;
+                max-width: 500px;
+                color: white;
               }
               h1 {
-                color: #4f46e5;
+                color: #fbbf24;
                 margin: 0 0 10px 0;
-                font-size: 24px;
+                font-size: 36px;
+                font-weight: bold;
               }
-              .details {
-                font-size: 14px;
-                color: #666;
-                margin-bottom: 20px;
+              .subtitle {
+                font-size: 18px;
+                color: #e0e7ff;
+                margin-bottom: 30px;
+                font-style: italic;
               }
               img {
-                width: 300px;
-                height: 300px;
-                border: 3px solid #4f46e5;
+                width: 350px;
+                height: 350px;
+                background: white;
+                border: 8px solid white;
                 border-radius: 10px;
-                margin: 20px 0;
+                margin: 30px 0;
               }
               .instructions {
-                font-size: 12px;
-                color: #999;
+                font-size: 16px;
+                color: white;
                 margin-top: 20px;
-                font-style: italic;
+                font-weight: bold;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #e0e7ff;
+                margin-top: 15px;
+              }
+              .branding {
+                font-size: 12px;
+                color: #a5b4fc;
+                margin-top: 20px;
               }
               @media print {
                 body {
@@ -137,20 +154,268 @@ export default function VendorQRCodePage() {
           </head>
           <body>
             <div class="container">
-              <h1>${vendor.name}</h1>
-              <div class="details">
-                <p>${vendor.address}</p>
-                <p>📞 ${vendor.phone_number}</p>
-              </div>
+              <h1>Discount Ka QR</h1>
+              <div class="subtitle">Scan karo, discount lo</div>
               <img src="${vendor.qr_code_url}" alt="QR Code" />
-              <p style="font-weight: bold; color: #333; margin: 20px 0;">Scan to view our offers!</p>
-              <div class="instructions">
-                Print this page and display in your store
-              </div>
+              <p class="instructions">No app. Sirf scan.</p>
+              <div class="tagline">${vendor.name}</div>
+              <div class="branding">Powered by • XNEX Retail.io</div>
             </div>
           </body>
         </html>
-      `);
+      `;
+    } else if (selectedLayout === 'layout2') {
+      // Green Layout
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${vendor.name} - QR Code</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: #f5f5f5;
+              }
+              .container {
+                background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+                padding: 50px;
+                border-radius: 10px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                text-align: center;
+                max-width: 500px;
+                color: white;
+              }
+              h1 {
+                color: #fbbf24;
+                margin: 0 0 10px 0;
+                font-size: 36px;
+                font-weight: bold;
+              }
+              .subtitle {
+                font-size: 18px;
+                color: #d1fae5;
+                margin-bottom: 30px;
+                font-style: italic;
+              }
+              img {
+                width: 350px;
+                height: 350px;
+                background: white;
+                border: 8px solid white;
+                border-radius: 10px;
+                margin: 30px 0;
+              }
+              .instructions {
+                font-size: 16px;
+                color: white;
+                margin-top: 20px;
+                font-weight: bold;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #d1fae5;
+                margin-top: 15px;
+              }
+              .branding {
+                font-size: 12px;
+                color: #6ee7b7;
+                margin-top: 20px;
+              }
+              @media print {
+                body {
+                  background: white;
+                }
+                .container {
+                  box-shadow: none;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Discount Ka QR</h1>
+              <div class="subtitle">Scan karo, discount lo</div>
+              <img src="${vendor.qr_code_url}" alt="QR Code" />
+              <p class="instructions">No app. Sirf scan.</p>
+              <div class="tagline">${vendor.name}</div>
+              <div class="branding">Powered by • XNEX Retail.io</div>
+            </div>
+          </body>
+        </html>
+      `;
+    } else if (selectedLayout === 'layout3') {
+      // Modern Purple Layout
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${vendor.name} - QR Code</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+              }
+              .container {
+                background: white;
+                padding: 50px;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                text-align: center;
+                max-width: 500px;
+              }
+              h1 {
+                color: #7c3aed;
+                margin: 0 0 5px 0;
+                font-size: 32px;
+                font-weight: bold;
+              }
+              .subtitle {
+                font-size: 16px;
+                color: #ec4899;
+                margin-bottom: 30px;
+                font-weight: 600;
+              }
+              img {
+                width: 350px;
+                height: 350px;
+                border: 6px solid #7c3aed;
+                border-radius: 15px;
+                margin: 30px 0;
+              }
+              .instructions {
+                font-size: 18px;
+                color: #7c3aed;
+                margin-top: 20px;
+                font-weight: bold;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #666;
+                margin-top: 15px;
+              }
+              .branding {
+                font-size: 12px;
+                color: #999;
+                margin-top: 20px;
+              }
+              @media print {
+                body {
+                  background: white;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>✨ Get Offers</h1>
+              <div class="subtitle">Scan to unlock amazing discounts</div>
+              <img src="${vendor.qr_code_url}" alt="QR Code" />
+              <p class="instructions">📱 Scan with your phone</p>
+              <div class="tagline">${vendor.name}</div>
+              <div class="branding">Smart Discounts • Easy Access</div>
+            </div>
+          </body>
+        </html>
+      `;
+    } else if (selectedLayout === 'layout4') {
+      // Minimal Red Layout
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>${vendor.name} - QR Code</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: #f5f5f5;
+              }
+              .container {
+                background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+                padding: 50px;
+                border-radius: 10px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                text-align: center;
+                max-width: 500px;
+                color: white;
+              }
+              h1 {
+                color: #fef2f2;
+                margin: 0 0 10px 0;
+                font-size: 36px;
+                font-weight: bold;
+              }
+              .subtitle {
+                font-size: 18px;
+                color: #fee2e2;
+                margin-bottom: 30px;
+                font-style: italic;
+              }
+              img {
+                width: 350px;
+                height: 350px;
+                background: white;
+                border: 8px solid white;
+                border-radius: 10px;
+                margin: 30px 0;
+              }
+              .instructions {
+                font-size: 16px;
+                color: white;
+                margin-top: 20px;
+                font-weight: bold;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #fee2e2;
+                margin-top: 15px;
+              }
+              .branding {
+                font-size: 12px;
+                color: #fecaca;
+                margin-top: 20px;
+              }
+              @media print {
+                body {
+                  background: white;
+                }
+                .container {
+                  box-shadow: none;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>🎉 Special Offers</h1>
+              <div class="subtitle">Scan karo, save karo</div>
+              <img src="${vendor.qr_code_url}" alt="QR Code" />
+              <p class="instructions">Camera se scan karein</p>
+              <div class="tagline">${vendor.name}</div>
+              <div class="branding">Powered by XNEX Retail.io</div>
+            </div>
+          </body>
+        </html>
+      `;
+    }
+    
+    const printWindow = window.open('', '', 'width=600,height=700');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
       printWindow.document.close();
       printWindow.print();
     }
@@ -289,6 +554,53 @@ export default function VendorQRCodePage() {
                   Download or print your QR code to display in your store, on social media, or in promotional materials.
                 </p>
 
+                {/* Layout Selection */}
+                <div className="mb-6 bg-white bg-opacity-20 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold mb-3 text-indigo-100">Choose Layout:</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setSelectedLayout('layout1')}
+                      className={`py-2 px-3 rounded-lg text-sm font-semibold transition ${
+                        selectedLayout === 'layout1'
+                          ? 'bg-white text-indigo-600'
+                          : 'bg-indigo-700 text-white hover:bg-indigo-800'
+                      }`}
+                    >
+                      💙 Blue Style
+                    </button>
+                    <button
+                      onClick={() => setSelectedLayout('layout2')}
+                      className={`py-2 px-3 rounded-lg text-sm font-semibold transition ${
+                        selectedLayout === 'layout2'
+                          ? 'bg-white text-indigo-600'
+                          : 'bg-indigo-700 text-white hover:bg-indigo-800'
+                      }`}
+                    >
+                      💚 Green Style
+                    </button>
+                    <button
+                      onClick={() => setSelectedLayout('layout3')}
+                      className={`py-2 px-3 rounded-lg text-sm font-semibold transition ${
+                        selectedLayout === 'layout3'
+                          ? 'bg-white text-indigo-600'
+                          : 'bg-indigo-700 text-white hover:bg-indigo-800'
+                      }`}
+                    >
+                      💜 Modern Style
+                    </button>
+                    <button
+                      onClick={() => setSelectedLayout('layout4')}
+                      className={`py-2 px-3 rounded-lg text-sm font-semibold transition ${
+                        selectedLayout === 'layout4'
+                          ? 'bg-white text-indigo-600'
+                          : 'bg-indigo-700 text-white hover:bg-indigo-800'
+                      }`}
+                    >
+                      ❤️ Red Style
+                    </button>
+                  </div>
+                </div>
+
                 <div className="space-y-3">
                   <button
                     onClick={downloadQRCode}
@@ -300,7 +612,7 @@ export default function VendorQRCodePage() {
                     onClick={generateQRCodeDataUrl}
                     className="w-full bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-800 transition flex items-center justify-center gap-2"
                   >
-                    🖨️ Print QR Code
+                    🖨️ Print with Selected Layout
                   </button>
                 </div>
               </div>
