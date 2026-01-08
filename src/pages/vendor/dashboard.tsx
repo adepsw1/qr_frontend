@@ -353,28 +353,17 @@ export default function VendorDashboard() {
       </Head>
 
       <div className="min-h-screen bg-white">
-        {/* Top Bar with Contact Admin & Logout */}
+        {/* Top Bar with Contact Admin */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">{vendor?.name || 'Vendor Dashboard'}</h1>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => alert('Contact Admin: admin@example.com')}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold transition"
-                >
-                  ☎️ Contact Admin
-                </button>
-                <button
-                  onClick={() => {
-                    localStorage.clear();
-                    window.location.href = '/';
-                  }}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-semibold transition"
-                >
-                  Logout
-                </button>
-              </div>
+              <button
+                onClick={() => alert('Contact Admin: admin@example.com')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold transition"
+              >
+                ☎️ Contact Admin
+              </button>
             </div>
           </div>
         </div>
@@ -388,55 +377,53 @@ export default function VendorDashboard() {
               {/* Banner */}
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl h-48 flex items-center justify-center relative overflow-hidden">
                 {vendor?.store_image ? (
-                  <img 
-                    src={vendor.store_image} 
-                    alt="Store Banner" 
-                    className="w-full h-full object-cover"
-                  />
+                  <button
+                    onClick={() => {
+                      setUploadType('banner');
+                      setShowImageModal(true);
+                    }}
+                    className="w-full h-full hover:ring-4 hover:ring-blue-400 transition group"
+                  >
+                    <img 
+                      src={vendor.store_image} 
+                      alt="Store Banner" 
+                      className="w-full h-full object-cover group-hover:opacity-75 transition"
+                    />
+                  </button>
                 ) : (
-                  <div className="text-center text-white">
-                    <p className="text-lg font-semibold">📸 Add Banner Photo</p>
-                    <button
-                      onClick={() => {
-                        setUploadType('banner');
-                        setShowImageModal(true);
-                      }}
-                      className="mt-3 bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition"
-                    >
-                      Upload Banner
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => {
+                      setUploadType('banner');
+                      setShowImageModal(true);
+                    }}
+                    className="text-center text-white hover:scale-105 transition"
+                  >
+                    <p className="text-lg font-semibold">📸 Click to Add Banner Photo</p>
+                  </button>
                 )}
               </div>
 
-              {/* Profile Photo - Overlapping Circle */}
+              {/* Profile Photo - Overlapping Circle - Clickable */}
               <div className="flex justify-center -mt-20 relative z-10 mb-6">
-                <div className="w-40 h-40 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center shadow-lg overflow-hidden">
-                  {vendor?.profile_image ? (
-                    <img 
-                      src={vendor.profile_image} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <p className="text-4xl">👤</p>
-                      <p className="text-xs text-gray-600 mt-1">Add Profile Photo</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Profile Photo Upload Button */}
-              <div className="text-center mb-6">
                 <button
                   onClick={() => {
                     setUploadType('profile');
                     setShowImageModal(true);
                   }}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+                  className="w-40 h-40 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center shadow-lg overflow-hidden hover:ring-4 hover:ring-blue-400 transition group"
                 >
-                  📸 Edit Photos
+                  {vendor?.profile_image ? (
+                    <img 
+                      src={vendor.profile_image} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover group-hover:opacity-75 transition"
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <p className="text-4xl">👤</p>
+                      <p className="text-xs text-gray-600 mt-1">Click to add</p>
+                    </div>
+                  )}
                 </button>
               </div>
 
@@ -479,26 +466,6 @@ export default function VendorDashboard() {
                     Customers will receive OTP codes when they participate in your offers
                   </p>
                 </form>
-              </div>
-
-              {/* Redemption Tracking Buttons */}
-              <div className="max-w-md mx-auto mb-12">
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => router.push('/vendor/redemption?period=today')}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-bold hover:from-orange-600 hover:to-red-600 transition flex flex-col items-center gap-1"
-                  >
-                    <span className="text-xl">📅</span>
-                    <span className="text-sm">Today's Redemption</span>
-                  </button>
-                  <button
-                    onClick={() => router.push('/vendor/redemption?period=weekly')}
-                    className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 rounded-lg font-bold hover:from-purple-600 hover:to-indigo-600 transition flex flex-col items-center gap-1"
-                  >
-                    <span className="text-xl">📊</span>
-                    <span className="text-sm">Weekly Redemption</span>
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -654,7 +621,7 @@ export default function VendorDashboard() {
           {/* Section 7: Quick Actions */}
           <div className="bg-white border-2 border-gray-300 rounded-xl p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">⚡ Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <button
                 onClick={() => router.push('/vendor/profile')}
                 className="bg-cyan-600 text-white py-3 rounded-lg font-semibold hover:bg-cyan-700 transition"
@@ -679,6 +646,12 @@ export default function VendorDashboard() {
               >
                 📸 Scanner
               </button>
+              <button
+                onClick={() => router.push('/vendor/redemption-stats')}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition"
+              >
+                📊 Redemptions
+              </button>
             </div>
           </div>
 
@@ -697,15 +670,17 @@ export default function VendorDashboard() {
             </button>
           </div>
 
-          {/* Image Upload Modal */}
-          {showImageModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  📸 Upload {uploadType === 'profile' ? 'Profile' : 'Banner'} Photo
-                </h2>
-                
-                <div className="mb-6">
+          {/* Image Upload/Management Modal */}
+        {showImageModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                📸 {uploadType === 'profile' ? 'Profile' : 'Banner'} Photo
+              </h2>
+              
+              <div className="space-y-3">
+                {/* Upload/Update Button */}
+                <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">Select Image:</label>
                   <input
                     type="file"
@@ -722,7 +697,7 @@ export default function VendorDashboard() {
                 </div>
 
                 {uploadingImage && (
-                  <div className="mb-6">
+                  <div>
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm font-semibold text-gray-700">Uploading...</span>
                       <span className="text-sm font-bold text-blue-600">{uploadProgress}%</span>
@@ -735,27 +710,71 @@ export default function VendorDashboard() {
                     </div>
                   </div>
                 )}
+              </div>
 
-                <div className="flex gap-3">
+              <div className="flex gap-3 mt-6">
+                {/* Remove Button - Only show if image exists */}
+                {uploadType === 'profile' && vendor?.profile_image && (
                   <button
                     onClick={() => {
-                      setShowImageModal(false);
-                      setUploadType(null);
-                      setUploadProgress(0);
+                      if (confirm('Remove profile photo?')) {
+                        if (vendor) {
+                          setVendor({
+                            ...vendor,
+                            profile_image: undefined,
+                          });
+                        }
+                        setShowImageModal(false);
+                        setUploadType(null);
+                      }
                     }}
                     disabled={uploadingImage}
-                    className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition disabled:opacity-50"
+                    className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
                   >
-                    Cancel
+                    🗑️ Remove
                   </button>
-                </div>
-
-                <p className="text-xs text-gray-600 text-center mt-4">
-                  ✅ Select an image and it will be uploaded automatically
-                </p>
+                )}
+                {uploadType === 'banner' && vendor?.store_image && (
+                  <button
+                    onClick={() => {
+                      if (confirm('Remove banner photo?')) {
+                        if (vendor) {
+                          setVendor({
+                            ...vendor,
+                            store_image: undefined,
+                          });
+                        }
+                        setShowImageModal(false);
+                        setUploadType(null);
+                      }
+                    }}
+                    disabled={uploadingImage}
+                    className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                  >
+                    🗑️ Remove
+                  </button>
+                )}
+                
+                {/* Close Button */}
+                <button
+                  onClick={() => {
+                    setShowImageModal(false);
+                    setUploadType(null);
+                    setUploadProgress(0);
+                  }}
+                  disabled={uploadingImage}
+                  className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition disabled:opacity-50"
+                >
+                  Close
+                </button>
               </div>
+
+              <p className="text-xs text-gray-600 text-center mt-4">
+                ✅ Select an image to update, or remove the existing one
+              </p>
             </div>
-          )}
+          </div>
+        )}
         </div>
       </div>
     </>
