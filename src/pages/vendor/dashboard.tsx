@@ -1282,45 +1282,45 @@ export default function VendorDashboard() {
 
         {/* QR Code Layouts Modal */}
         {showQRLayouts && (
-          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl w-full max-w-4xl overflow-hidden my-8">
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-bold">🎨 Choose Your QR Code Design</h3>
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl w-full max-w-6xl overflow-hidden my-4 sm:my-8">
+              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-lg sm:text-2xl font-bold">🎨 Choose Your QR Code Design</h3>
                   <button
                     onClick={() => setShowQRLayouts(false)}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 text-2xl"
+                    className="text-white hover:bg-white/20 rounded-lg p-2 text-xl sm:text-2xl flex-shrink-0"
                   >
                     ✕
                   </button>
                 </div>
               </div>
               
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="p-3 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-6 mb-6">
                   {/* Layout 1 - Blue */}
                   <div 
                     onClick={() => setSelectedQRLayout('layout1')}
-                    className={`cursor-pointer p-4 rounded-lg border-4 transition ${
+                    className={`cursor-pointer p-3 sm:p-4 rounded-lg border-4 transition ${
                       selectedQRLayout === 'layout1' 
                         ? 'border-indigo-600 bg-indigo-50' 
                         : 'border-gray-200 bg-gray-50 hover:border-indigo-400'
                     }`}
                   >
-                    <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg p-6 text-white text-center mb-3 h-48 flex flex-col justify-center items-center">
-                      <h4 className="text-xl font-bold text-yellow-400">Discount Ka QR</h4>
-                      <p className="text-sm italic text-blue-100">Scan karo, discount lo</p>
+                    <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg p-4 sm:p-6 text-white text-center mb-3 h-40 sm:h-48 flex flex-col justify-center items-center">
+                      <h4 className="text-base sm:text-xl font-bold text-yellow-400">Discount Ka QR</h4>
+                      <p className="text-xs sm:text-sm italic text-blue-100">Scan karo, discount lo</p>
                       <div className="mt-3 bg-white p-2 rounded">
-                        <div className="w-20 h-20 bg-gray-300 mx-auto"></div>
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-300 mx-auto"></div>
                       </div>
-                      <p className="text-sm mt-3 text-white font-bold">No app. Sirf scan.</p>
+                      <p className="text-xs sm:text-sm mt-3 text-white font-bold">No app. Sirf scan.</p>
                     </div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         printQRLayout('layout1');
                       }}
-                      className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
+                      className="w-full bg-blue-600 text-white py-2 sm:py-2 px-2 rounded-lg font-semibold hover:bg-blue-700 text-xs sm:text-sm"
                     >
                       💙 Print Blue Design
                     </button>
@@ -1329,26 +1329,26 @@ export default function VendorDashboard() {
                   {/* Layout 2 - Green */}
                   <div 
                     onClick={() => setSelectedQRLayout('layout2')}
-                    className={`cursor-pointer p-4 rounded-lg border-4 transition ${
+                    className={`cursor-pointer p-3 sm:p-4 rounded-lg border-4 transition ${
                       selectedQRLayout === 'layout2' 
                         ? 'border-indigo-600 bg-indigo-50' 
                         : 'border-gray-200 bg-gray-50 hover:border-indigo-400'
                     }`}
                   >
-                    <div className="bg-gradient-to-br from-green-900 to-green-700 rounded-lg p-6 text-white text-center mb-3 h-48 flex flex-col justify-center items-center">
-                      <h4 className="text-xl font-bold text-yellow-400">Discount Ka QR</h4>
-                      <p className="text-sm italic text-green-100">Scan karo, discount lo</p>
+                    <div className="bg-gradient-to-br from-green-900 to-green-700 rounded-lg p-4 sm:p-6 text-white text-center mb-3 h-40 sm:h-48 flex flex-col justify-center items-center">
+                      <h4 className="text-base sm:text-xl font-bold text-yellow-400">Discount Ka QR</h4>
+                      <p className="text-xs sm:text-sm italic text-green-100">Scan karo, discount lo</p>
                       <div className="mt-3 bg-white p-2 rounded">
-                        <div className="w-20 h-20 bg-gray-300 mx-auto"></div>
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-300 mx-auto"></div>
                       </div>
-                      <p className="text-sm mt-3 text-white font-bold">No app. Sirf scan.</p>
+                      <p className="text-xs sm:text-sm mt-3 text-white font-bold">No app. Sirf scan.</p>
                     </div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         printQRLayout('layout2');
                       }}
-                      className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700"
+                      className="w-full bg-green-600 text-white py-2 sm:py-2 px-2 rounded-lg font-semibold hover:bg-green-700 text-xs sm:text-sm"
                     >
                       💚 Print Green Design
                     </button>
@@ -1357,26 +1357,26 @@ export default function VendorDashboard() {
                   {/* Layout 3 - Modern Purple */}
                   <div 
                     onClick={() => setSelectedQRLayout('layout3')}
-                    className={`cursor-pointer p-4 rounded-lg border-4 transition ${
+                    className={`cursor-pointer p-3 sm:p-4 rounded-lg border-4 transition ${
                       selectedQRLayout === 'layout3' 
                         ? 'border-indigo-600 bg-indigo-50' 
                         : 'border-gray-200 bg-gray-50 hover:border-indigo-400'
                     }`}
                   >
-                    <div className="bg-white border-4 border-purple-600 rounded-lg p-6 text-center mb-3 h-48 flex flex-col justify-center items-center">
-                      <h4 className="text-xl font-bold text-purple-600">✨ Get Offers</h4>
-                      <p className="text-sm font-semibold text-purple-500">Scan to unlock amazing discounts</p>
+                    <div className="bg-white border-4 border-purple-600 rounded-lg p-4 sm:p-6 text-center mb-3 h-40 sm:h-48 flex flex-col justify-center items-center">
+                      <h4 className="text-base sm:text-xl font-bold text-purple-600">✨ Get Offers</h4>
+                      <p className="text-xs sm:text-sm font-semibold text-purple-500">Scan to unlock amazing discounts</p>
                       <div className="mt-3 bg-gray-200 p-2 rounded">
-                        <div className="w-20 h-20 bg-gray-400 mx-auto"></div>
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-400 mx-auto"></div>
                       </div>
-                      <p className="text-sm mt-3 text-purple-600 font-bold">📱 Scan with your phone</p>
+                      <p className="text-xs sm:text-sm mt-3 text-purple-600 font-bold">📱 Scan with your phone</p>
                     </div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         printQRLayout('layout3');
                       }}
-                      className="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700"
+                      className="w-full bg-purple-600 text-white py-2 sm:py-2 px-2 rounded-lg font-semibold hover:bg-purple-700 text-xs sm:text-sm"
                     >
                       💜 Print Modern Design
                     </button>
@@ -1385,36 +1385,36 @@ export default function VendorDashboard() {
                   {/* Layout 4 - Red */}
                   <div 
                     onClick={() => setSelectedQRLayout('layout4')}
-                    className={`cursor-pointer p-4 rounded-lg border-4 transition ${
+                    className={`cursor-pointer p-3 sm:p-4 rounded-lg border-4 transition ${
                       selectedQRLayout === 'layout4' 
                         ? 'border-indigo-600 bg-indigo-50' 
                         : 'border-gray-200 bg-gray-50 hover:border-indigo-400'
                     }`}
                   >
-                    <div className="bg-gradient-to-br from-red-900 to-red-700 rounded-lg p-6 text-white text-center mb-3 h-48 flex flex-col justify-center items-center">
-                      <h4 className="text-xl font-bold text-yellow-200">🎉 Special Offers</h4>
-                      <p className="text-sm italic text-red-100">Scan karo, save karo</p>
+                    <div className="bg-gradient-to-br from-red-900 to-red-700 rounded-lg p-4 sm:p-6 text-white text-center mb-3 h-40 sm:h-48 flex flex-col justify-center items-center">
+                      <h4 className="text-base sm:text-xl font-bold text-yellow-200">🎉 Special Offers</h4>
+                      <p className="text-xs sm:text-sm italic text-red-100">Scan karo, save karo</p>
                       <div className="mt-3 bg-white p-2 rounded">
-                        <div className="w-20 h-20 bg-gray-300 mx-auto"></div>
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-300 mx-auto"></div>
                       </div>
-                      <p className="text-sm mt-3 text-white font-bold">Camera se scan karein</p>
+                      <p className="text-xs sm:text-sm mt-3 text-white font-bold">Camera se scan karein</p>
                     </div>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         printQRLayout('layout4');
                       }}
-                      className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700"
+                      className="w-full bg-red-600 text-white py-2 sm:py-2 px-2 rounded-lg font-semibold hover:bg-red-700 text-xs sm:text-sm"
                     >
                       ❤️ Print Red Design
                     </button>
                   </div>
                 </div>
 
-                <div className="flex gap-3 justify-end border-t pt-4">
+                <div className="flex gap-2 sm:gap-3 justify-end border-t pt-4">
                   <button
                     onClick={() => setShowQRLayouts(false)}
-                    className="px-6 py-2 bg-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-400"
+                    className="px-4 sm:px-6 py-2 bg-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-400 text-xs sm:text-sm"
                   >
                     Close
                   </button>
