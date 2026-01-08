@@ -382,13 +382,24 @@ export default function VendorDashboard() {
                       setUploadType('banner');
                       setShowImageModal(true);
                     }}
-                    className="w-full h-full hover:ring-4 hover:ring-blue-400 transition group"
+                    className="w-full h-full hover:ring-4 hover:ring-blue-400 transition group relative"
                   >
                     <img 
                       src={vendor.store_image} 
                       alt="Store Banner" 
                       className="w-full h-full object-cover group-hover:opacity-75 transition"
                     />
+                    {uploadType === 'banner' && uploadingImage && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center">
+                        <div className="w-2/3 bg-gray-300 rounded-full h-2 mb-3">
+                          <div 
+                            className="bg-white h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-white font-bold text-lg">{uploadProgress}%</p>
+                      </div>
+                    )}
                   </button>
                 ) : (
                   <button
@@ -396,9 +407,20 @@ export default function VendorDashboard() {
                       setUploadType('banner');
                       setShowImageModal(true);
                     }}
-                    className="text-center text-white hover:scale-105 transition"
+                    className="text-center text-white hover:scale-105 transition relative w-full h-full flex items-center justify-center"
                   >
                     <p className="text-lg font-semibold">📸 Click to Add Banner Photo</p>
+                    {uploadType === 'banner' && uploadingImage && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center rounded-xl">
+                        <div className="w-2/3 bg-gray-300 rounded-full h-2 mb-3">
+                          <div 
+                            className="bg-white h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-white font-bold text-lg">{uploadProgress}%</p>
+                      </div>
+                    )}
                   </button>
                 )}
               </div>
@@ -410,7 +432,7 @@ export default function VendorDashboard() {
                     setUploadType('profile');
                     setShowImageModal(true);
                   }}
-                  className="w-40 h-40 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center shadow-lg overflow-hidden hover:ring-4 hover:ring-blue-400 transition group"
+                  className="w-40 h-40 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center shadow-lg overflow-hidden hover:ring-4 hover:ring-blue-400 transition group relative"
                 >
                   {vendor?.profile_image ? (
                     <img 
@@ -422,6 +444,17 @@ export default function VendorDashboard() {
                     <div className="text-center">
                       <p className="text-4xl">👤</p>
                       <p className="text-xs text-gray-600 mt-1">Click to add</p>
+                    </div>
+                  )}
+                  {uploadType === 'profile' && uploadingImage && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex flex-col items-center justify-center">
+                      <div className="w-3/4 bg-gray-300 rounded-full h-2 mb-2">
+                        <div 
+                          className="bg-white h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-white font-bold text-sm">{uploadProgress}%</p>
                     </div>
                   )}
                 </button>
