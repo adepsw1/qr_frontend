@@ -943,6 +943,32 @@ export default function VendorDashboard() {
           </div>
         )}
         </div>
+
+        {/* Contact Us Section */}
+        <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8 max-w-md mx-auto">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">📞 Contact Us</h2>
+          <p className="text-gray-600 text-center mb-4">Need help? Reach out to us!</p>
+          
+          <div className="flex flex-col gap-3">
+            {/* WhatsApp Button */}
+            <a
+              href="https://wa.me/919545105125?text=Hi%20I%20need%20help"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
+            >
+              💬 WhatsApp Us
+            </a>
+
+            {/* Email Button */}
+            <a
+              href="mailto:contact@xnex.io"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+            >
+              ✉️ Email Us
+            </a>
+          </div>
+        </div>
       </div>
     </>
   );

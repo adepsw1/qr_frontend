@@ -465,25 +465,6 @@ export default function QRScanResult() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => window.open(`tel:${vendor.phone_number}`)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
-                >
-                  <span>📞</span> Call
-                </button>
-                <button
-                  onClick={() => {
-                    const link = `https://wa.me/${vendor.phone_number?.replace(/[^0-9]/g, '')}?text=Hi, I visited your store!`;
-                    window.open(link, '_blank');
-                  }}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
-                >
-                  <span>💬</span> WhatsApp
-                </button>
-              </div>
-              
               {/* Google Maps Link */}
               <button
                 onClick={() => {
