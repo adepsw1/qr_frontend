@@ -41,6 +41,12 @@ export default function VendorDashboard() {
   const [error, setError] = useState('');
   const [stats, setStats] = useState<VendorStats | null>(null);
   const [vendor, setVendor] = useState<VendorProfile | null>(null);
+  
+  // OTP Redemption states
+  const [otpInput, setOtpInput] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpMessage, setOtpMessage] = useState('');
+  const [otpSuccess, setOtpSuccess] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -204,6 +210,59 @@ export default function VendorDashboard() {
     }
   };
 
+  const handleRedeemOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!otpInput.trim()) {
+      setOtpMessage('❌ Please enter an OTP');
+      setOtpSuccess(false);
+      return;
+    }
+
+    try {
+      setOtpLoading(true);
+      setOtpMessage('');
+      const token = localStorage.getItem('accessToken');
+      const vendorId = localStorage.getItem('vendorId');
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/redemption/verify-otp`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            otp: otpInput.trim(),
+            vendor_id: vendorId,
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setOtpMessage(`✅ ${data.message || 'OTP redeemed successfully!'}`);
+        setOtpSuccess(true);
+        setOtpInput('');
+        // Refresh stats after redemption
+        setTimeout(() => {
+          fetchDashboardData();
+        }, 1500);
+      } else {
+        setOtpMessage(`❌ ${data.message || 'Invalid OTP'}`);
+        setOtpSuccess(false);
+      }
+    } catch (err: any) {
+      console.error('Error redeeming OTP:', err);
+      setOtpMessage(`❌ Error: ${err.message}`);
+      setOtpSuccess(false);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -300,33 +359,52 @@ export default function VendorDashboard() {
                   📸 Edit Photos
                 </button>
               </div>
+
+              {/* OTP Redemption Form - New Section */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 max-w-md mx-auto mb-12">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">🎟️ Quick OTP Redemption</h3>
+                <form onSubmit={handleRedeemOTP} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Enter OTP Code</label>
+                    <input
+                      type="text"
+                      value={otpInput}
+                      onChange={(e) => setOtpInput(e.target.value.toUpperCase())}
+                      placeholder="Enter 6-digit OTP"
+                      maxLength={10}
+                      className="w-full px-4 py-3 text-center text-lg font-mono border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-600 transition"
+                      disabled={otpLoading}
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    disabled={otpLoading}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-gray-400 flex items-center justify-center gap-2"
+                  >
+                    {otpLoading ? '⏳ Processing...' : '✅ Redeem OTP'}
+                  </button>
+
+                  {otpMessage && (
+                    <div className={`p-3 rounded-lg text-center font-semibold text-sm ${
+                      otpSuccess 
+                        ? 'bg-green-100 text-green-800 border border-green-300' 
+                        : 'bg-red-100 text-red-800 border border-red-300'
+                    }`}>
+                      {otpMessage}
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-600 text-center mt-3">
+                    Customers will receive OTP codes when they participate in your offers
+                  </p>
+                </form>
+              </div>
             </div>
           </div>
 
-          {/* Section 2: OTP Redemption Window */}
-          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">🎟️ OTP Redemption Window</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
-                <p className="text-sm text-gray-600">Total Redemptions</p>
-                <p className="text-3xl font-bold text-blue-600">{stats?.accepted_offers || 0}</p>
-              </div>
-              <div className="bg-green-50 border border-green-300 rounded-lg p-4">
-                <p className="text-sm text-gray-600">Today's Redemptions</p>
-                <p className="text-3xl font-bold text-green-600">0</p>
-              </div>
-              <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
-                <p className="text-sm text-gray-600">Pending Verifications</p>
-                <p className="text-3xl font-bold text-purple-600">{stats?.pending_offers || 0}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => router.push('/vendor/redemption')}
-              className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-            >
-              🎫 Go to Redemption Scanner
-            </button>
-          </div>
+          {/* Section 2: OTP Redemption Window - Removed, only quick form above */}
+          {/* All OTP redemption stats moved to /vendor/redemption page */}
 
           {/* Section 3: Add Products */}
           <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8">
@@ -502,6 +580,22 @@ export default function VendorDashboard() {
                 📸 Scanner
               </button>
             </div>
+          </div>
+
+          {/* Section 8: Logout */}
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mt-12">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">🚪 Account</h2>
+            <button
+              onClick={() => {
+                if (confirm('Are you sure you want to logout?')) {
+                  localStorage.clear();
+                  window.location.href = '/vendor/login';
+                }
+              }}
+              className="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2 text-lg"
+            >
+              🚪 Logout
+            </button>
           </div>
         </div>
       </div>
