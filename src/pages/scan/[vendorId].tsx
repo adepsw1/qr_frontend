@@ -48,6 +48,7 @@ export default function QRScanResult() {
   const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showContactAdmin, setShowContactAdmin] = useState(false);
   const [error, setError] = useState('');
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [redemptionId, setRedemptionId] = useState('');
@@ -465,6 +466,14 @@ export default function QRScanResult() {
                 </div>
               </div>
 
+              {/* Contact Admin Button */}
+              <button
+                onClick={() => setShowContactAdmin(true)}
+                className="w-full mt-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl font-medium transition flex items-center justify-center gap-2 border border-indigo-500/30"
+              >
+                <span>💬</span> Contact Admin
+              </button>
+
               {/* Google Maps Link */}
               <button
                 onClick={() => {
@@ -478,6 +487,53 @@ export default function QRScanResult() {
             </div>
           </div>
         </div>
+
+        {/* Contact Admin Modal */}
+        {showContactAdmin && (
+          <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 p-4">
+            <div className="bg-slate-900 rounded-2xl w-full max-w-sm overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-white">Contact Admin</h3>
+                  <button
+                    onClick={() => setShowContactAdmin(false)}
+                    className="text-indigo-400 hover:text-white text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* WhatsApp Button */}
+                  <button
+                    onClick={() => {
+                      window.open(`https://wa.me/+919545105125?text=Hi`, '_blank');
+                      setShowContactAdmin(false);
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-3"
+                  >
+                    <span className="text-xl">💬</span>
+                    <span>WhatsApp Us</span>
+                    <span className="text-sm">+91 9545105125</span>
+                  </button>
+
+                  {/* Email Button */}
+                  <button
+                    onClick={() => {
+                      window.location.href = 'mailto:contact@xnex.io?subject=Contact from QR Offer&body=Hi, I would like to get in touch.';
+                      setShowContactAdmin(false);
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-3"
+                  >
+                    <span className="text-xl">✉️</span>
+                    <span>Email Us</span>
+                    <span className="text-sm">contact@xnex.io</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer Branding */}
         <div className="text-center py-6 border-t border-indigo-500/20">
