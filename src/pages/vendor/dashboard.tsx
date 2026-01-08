@@ -54,6 +54,9 @@ export default function VendorDashboard() {
   const [uploadType, setUploadType] = useState<'profile' | 'banner' | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  
+  // Contact Admin modal state
+  const [showContactAdmin, setShowContactAdmin] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -400,7 +403,7 @@ export default function VendorDashboard() {
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">{vendor?.name || 'Vendor Dashboard'}</h1>
               <button
-                onClick={() => alert('Contact Admin: admin@example.com')}
+                onClick={() => setShowContactAdmin(true)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold transition"
               >
                 ☎️ Contact Admin
@@ -798,7 +801,7 @@ export default function VendorDashboard() {
           </div>
 
           {/* Section 8: Logout */}
-          <div className="flex justify-center mt-12 mb-8">
+          <div className="flex justify-center mt-6 mb-8">
             <button
               onClick={() => {
                 if (confirm('Are you sure you want to logout?')) {
@@ -944,31 +947,56 @@ export default function VendorDashboard() {
         )}
         </div>
 
-        {/* Contact Us Section */}
-        <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8 max-w-md mx-auto">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">📞 Contact Us</h2>
-          <p className="text-gray-600 text-center mb-4">Need help? Reach out to us!</p>
-          
-          <div className="flex flex-col gap-3">
-            {/* WhatsApp Button */}
-            <a
-              href="https://wa.me/919545105125?text=Hi%20I%20need%20help"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
-            >
-              💬 WhatsApp Us
-            </a>
+        {/* Contact Admin Modal */}
+        {showContactAdmin && (
+          <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 p-4">
+            <div className="bg-slate-900 rounded-2xl w-full max-w-sm overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-white">Contact Admin</h3>
+                  <button
+                    onClick={() => setShowContactAdmin(false)}
+                    className="text-indigo-400 hover:text-white text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* WhatsApp Button */}
+                  <button
+                    onClick={() => {
+                      window.open(`https://wa.me/+919545105125?text=Hi`, '_blank');
+                      setShowContactAdmin(false);
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-3"
+                  >
+                    <span className="text-xl">💬</span>
+                    <div className="text-left">
+                      <div>WhatsApp Us</div>
+                      <div className="text-xs opacity-90">+91 9545105125</div>
+                    </div>
+                  </button>
 
-            {/* Email Button */}
-            <a
-              href="mailto:contact@xnex.io"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
-            >
-              ✉️ Email Us
-            </a>
+                  {/* Email Button */}
+                  <button
+                    onClick={() => {
+                      window.location.href = 'mailto:contact@xnex.io?subject=Contact from QR Offer&body=Hi, I would like to get in touch.';
+                      setShowContactAdmin(false);
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-3"
+                  >
+                    <span className="text-xl">✉️</span>
+                    <div className="text-left">
+                      <div>Email Us</div>
+                      <div className="text-xs opacity-90">contact@xnex.io</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
