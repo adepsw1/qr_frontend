@@ -24,10 +24,10 @@ export default function VendorStorefront() {
 
         // Fetch products
         const productsRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/vendor/${vendorId}/products`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/product/vendor/${vendorId}`
         );
         const productsData = await productsRes.json();
-        setProducts(productsData || []);
+        setProducts(productsData.data || []);
 
         // Fetch offers
         const offersRes = await fetch(
@@ -195,11 +195,27 @@ export default function VendorStorefront() {
                   >
                     <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-lg sm:rounded-xl opacity-0 group-hover:opacity-50 blur-xl transition"></div>
                     <div className="relative p-4 sm:p-6">
-                      <div className="text-5xl sm:text-6xl mb-3 text-center">{product.image || '🛍️'}</div>
+                      {/* Product Image */}
+                      <div className="mb-3 flex items-center justify-center h-32 sm:h-40 bg-slate-800/50 rounded-lg overflow-hidden">
+                        {product.icon && product.icon.startsWith('http') ? (
+                          <img 
+                            src={product.icon} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className="text-5xl sm:text-6xl text-center hidden">
+                          {product.icon || '🛍️'}
+                        </div>
+                      </div>
                       <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{product.name}</h3>
                       <p className="text-indigo-200 text-sm mb-4">{product.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl sm:text-3xl font-black text-violet-400">{product.price}</span>
+                        <span className="text-2xl sm:text-3xl font-black text-violet-400">${product.price}</span>
                         <a href={`https://wa.me/${vendorData?.whatsappNumber || ''}?text=I%20am%20interested%20in%20${product.name}`} className="px-3 sm:px-4 py-2 bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white rounded-lg font-bold text-xs sm:text-sm transition">
                           Order →
                         </a>

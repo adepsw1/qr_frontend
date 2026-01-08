@@ -47,6 +47,7 @@ export default function VendorDashboard() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpMessage, setOtpMessage] = useState('');
   const [otpSuccess, setOtpSuccess] = useState(false);
+  const [otpData, setOtpData] = useState<any>(null);
   
   // Image upload states
   const [showImageModal, setShowImageModal] = useState(false);
@@ -222,12 +223,14 @@ export default function VendorDashboard() {
     if (!otpInput.trim()) {
       setOtpMessage('❌ Please enter an OTP');
       setOtpSuccess(false);
+      setOtpData(null);
       return;
     }
 
     try {
       setOtpLoading(true);
       setOtpMessage('');
+      setOtpData(null);
       const token = localStorage.getItem('accessToken');
       const vendorId = localStorage.getItem('vendorId');
 
@@ -249,21 +252,20 @@ export default function VendorDashboard() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setOtpMessage(`✅ ${data.message || 'OTP redeemed successfully!'}`);
+        setOtpData(data.data);
+        setOtpMessage(`✅ OTP Validated Successfully!`);
         setOtpSuccess(true);
-        setOtpInput('');
-        // Refresh stats after redemption
-        setTimeout(() => {
-          fetchDashboardData();
-        }, 1500);
+        // Don't clear input yet, keep for reference
       } else {
         setOtpMessage(`❌ ${data.message || 'Invalid OTP'}`);
         setOtpSuccess(false);
+        setOtpData(null);
       }
     } catch (err: any) {
       console.error('Error redeeming OTP:', err);
       setOtpMessage(`❌ Error: ${err.message}`);
       setOtpSuccess(false);
+      setOtpData(null);
     } finally {
       setOtpLoading(false);
     }
@@ -500,7 +502,7 @@ export default function VendorDashboard() {
               </div>
 
               {/* OTP Redemption Form - New Section */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 max-w-md mx-auto mb-8">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 max-w-2xl mx-auto mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">🎟️ Quick OTP Redemption</h3>
                 <form onSubmit={handleRedeemOTP} className="space-y-4">
                   <div>
@@ -521,7 +523,7 @@ export default function VendorDashboard() {
                     disabled={otpLoading}
                     className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-gray-400 flex items-center justify-center gap-2"
                   >
-                    {otpLoading ? '⏳ Processing...' : '✅ Redeem OTP'}
+                    {otpLoading ? '⏳ Processing...' : '✅ Verify OTP'}
                   </button>
 
                   {otpMessage && (
@@ -534,8 +536,76 @@ export default function VendorDashboard() {
                     </div>
                   )}
 
+                  {/* Show Customer & Offer Details After Validation */}
+                  {otpSuccess && otpData && (
+                    <div className="mt-6 bg-white border-2 border-green-300 rounded-lg p-5 space-y-4">
+                      <h4 className="font-bold text-lg text-gray-900 mb-4 border-b pb-2">📋 Customer & Offer Details</h4>
+                      
+                      {/* Customer Details */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-xs text-gray-600 font-semibold uppercase">Customer Name</p>
+                          <p className="text-lg font-bold text-blue-700">{otpData.customerName}</p>
+                        </div>
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-xs text-gray-600 font-semibold uppercase">Phone Number</p>
+                          <p className="text-lg font-bold text-blue-700">{otpData.phoneNumber}</p>
+                        </div>
+                      </div>
+
+                      {/* Offer Details */}
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-l-4 border-purple-500">
+                        <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Offer</p>
+                        <p className="text-lg font-bold text-purple-700 mb-2">{otpData.offerTitle}</p>
+                        <p className="text-sm text-gray-700">{otpData.offerDescription}</p>
+                      </div>
+
+                      {/* Confirm Redemption Button */}
+                      <button
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem('accessToken');
+                            const vendorId = localStorage.getItem('vendorId');
+                            
+                            const confirmRes = await fetch(
+                              `${process.env.NEXT_PUBLIC_API_URL}/api/redemption/confirm`,
+                              {
+                                method: 'POST',
+                                headers: {
+                                  'Authorization': `Bearer ${token}`,
+                                  'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                  redemptionId: otpData.redemptionId,
+                                  vendorId: vendorId,
+                                }),
+                              },
+                            );
+
+                            const confirmData = await confirmRes.json();
+                            if (confirmRes.ok) {
+                              alert(`✅ ${confirmData.message}\nRedeemed: ${confirmData.offerTitle}`);
+                              setOtpInput('');
+                              setOtpData(null);
+                              setOtpMessage('');
+                              setOtpSuccess(false);
+                              fetchDashboardData();
+                            } else {
+                              alert(`❌ ${confirmData.message}`);
+                            }
+                          } catch (err: any) {
+                            alert(`❌ Error: ${err.message}`);
+                          }
+                        }}
+                        className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition text-lg"
+                      >
+                        ✓ Confirm Redemption
+                      </button>
+                    </div>
+                  )}
+
                   <p className="text-xs text-gray-600 text-center mt-3">
-                    Customers will receive OTP codes when they participate in your offers
+                    Customers receive OTP codes when they participate in your offers
                   </p>
                 </form>
               </div>
