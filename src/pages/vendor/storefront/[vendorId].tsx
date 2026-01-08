@@ -197,20 +197,19 @@ export default function VendorStorefront() {
                     <div className="relative p-4 sm:p-6">
                       {/* Product Image */}
                       <div className="mb-3 flex items-center justify-center h-32 sm:h-40 bg-slate-800/50 rounded-lg overflow-hidden">
-                        {product.icon && product.icon.startsWith('http') ? (
+                        {product.icon ? (
                           <img 
                             src={product.icon} 
                             alt={product.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                              (e.target as HTMLImageElement).src = '🛍️';
+                              (e.target as HTMLImageElement).alt = 'Product Image';
                             }}
                           />
-                        ) : null}
-                        <div className="text-5xl sm:text-6xl text-center hidden">
-                          {product.icon || '🛍️'}
-                        </div>
+                        ) : (
+                          <div className="text-5xl sm:text-6xl text-center">🛍️</div>
+                        )}
                       </div>
                       <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{product.name}</h3>
                       <p className="text-indigo-200 text-sm mb-4">{product.description}</p>
