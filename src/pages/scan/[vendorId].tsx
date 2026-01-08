@@ -391,7 +391,25 @@ export default function QRScanResult() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {products.map((product) => (
                     <div key={product.id} className="bg-gradient-to-br from-slate-800/80 to-indigo-800/80 border border-indigo-500/30 rounded-xl p-4 text-center">
-                      <div className="text-3xl mb-2">{product.icon || '📦'}</div>
+                      <div className="h-24 mb-2 flex items-center justify-center overflow-hidden rounded-lg bg-slate-700/50">
+                        {product.icon ? (
+                          <img 
+                            src={product.icon} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const imgElement = e.target as HTMLImageElement;
+                              imgElement.style.display = 'none';
+                              const parent = imgElement.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="text-3xl">📦</div>';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="text-3xl">📦</div>
+                        )}
+                      </div>
                       <h4 className="text-white font-semibold text-sm">{product.name}</h4>
                       <p className="text-emerald-400 font-bold mt-1">₹{product.price}</p>
                     </div>
