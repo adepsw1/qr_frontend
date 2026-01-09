@@ -21,18 +21,22 @@ export default function QRValidatePage() {
         });
 
         const data = await res.json();
+        console.log('QR Validation Response:', { status: res.status, data });
 
         // Check if QR is already claimed
-        if (res.status === 410 && data.claimed) {
+        if ((res.status === 410 || data.claimed) && data.vendor_id) {
           // QR is already claimed - redirect directly to vendor's storefront
-          console.log('✅ QR is claimed, redirecting to vendor storefront...');
+          console.log('✅ QR is claimed, redirecting to vendor storefront:', data.vendor_id);
           router.push(`/scan/${data.vendor_id}`);
-        } else if (res.ok && !data.claimed) {
+          return;
+        } else if (res.ok && data.valid && !data.claimed) {
           // QR is unclaimed - redirect to registration form
           console.log('📝 QR is unclaimed, redirecting to registration...');
           router.push(`/vendor/register?token=${token}`);
+          return;
         } else {
           // Invalid QR
+          console.warn('Invalid QR response:', data);
           setError(data.message || 'Invalid QR code');
           setTimeout(() => {
             router.push('/');
