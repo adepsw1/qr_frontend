@@ -33,11 +33,13 @@ export default function QRManagement() {
   const fetchQRCodes = async () => {
     try {
       const token = localStorage.getItem('accessToken');
+      console.log('Access Token:', token ? 'Present' : 'Missing');
       if (!token) {
         router.push('/admin/login');
         return;
       }
 
+      console.log('Fetching QR codes from:', `${process.env.NEXT_PUBLIC_API_URL}/api/qr`);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -54,21 +56,34 @@ export default function QRManagement() {
       // Handle nested data structure
       // Backend returns: { success, data: { data: [...], total, page, limit, pages } }
       let qrArray = [];
+      console.log('Raw data.data:', data.data);
+      console.log('data.data type:', typeof data.data);
+      console.log('Is data.data array?', Array.isArray(data.data));
+      console.log('data.data.data:', data.data?.data);
+      console.log('data.data.tokens:', data.data?.tokens);
+      
       if (data.data) {
         if (Array.isArray(data.data)) {
           // Direct array
+          console.log('Detected: Direct array');
           qrArray = data.data;
         } else if (data.data.data && Array.isArray(data.data.data)) {
           // Nested: data.data.data = token array
+          console.log('Detected: Nested data.data.data');
           qrArray = data.data.data;
         } else if (data.data.tokens && Array.isArray(data.data.tokens)) {
           // Alternative: data.data.tokens
+          console.log('Detected: data.data.tokens');
           qrArray = data.data.tokens;
+        } else {
+          console.log('WARNING: data.data exists but no array found. Structure:', Object.keys(data.data || {}));
         }
       } else if (Array.isArray(data)) {
+        console.log('Detected: data is direct array');
         qrArray = data;
       }
 
+      console.log('QR Array length:', qrArray.length);
       console.log('QR Array:', qrArray);
 
       // Map backend field names to frontend expectations
@@ -81,6 +96,7 @@ export default function QRManagement() {
       }));
       
       console.log('Mapped Codes:', mappedCodes);
+      console.log('Total codes to display:', mappedCodes.length);
       setQRCodes(mappedCodes);
       setError('');
     } catch (err: any) {
