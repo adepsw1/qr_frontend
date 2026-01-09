@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
@@ -24,6 +24,20 @@ export default function VendorRegisterPage() {
   const [qrTokenError, setQrTokenError] = useState('');
   const [qrTokenValid, setQrTokenValid] = useState(false);
 
+  // Check if QR token is in URL and validate it
+  useEffect(() => {
+    if (router.query.token) {
+      const token = router.query.token as string;
+      setFormData((prev) => ({
+        ...prev,
+        qrToken: token,
+      }));
+      
+      // Validate the token immediately
+      validateQRTokenByToken(token);
+    }
+  }, [router.query.token]);
+
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -32,8 +46,8 @@ export default function VendorRegisterPage() {
     }));
   };
 
-  const validateQRToken = async () => {
-    if (!formData.qrToken.trim()) {
+  const validateQRTokenByToken = async (token: string) => {
+    if (!token.trim()) {
       setQrTokenError('QR Token is required');
       setQrTokenValid(false);
       return;
@@ -43,12 +57,25 @@ export default function VendorRegisterPage() {
     setQrTokenError('');
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/validate/${formData.qrToken}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/validate/${token}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
 
       const data = await res.json();
+
+      // Check if QR is already claimed
+      if (res.status === 410 && data.claimed) {
+        // QR is already claimed - redirect to vendor's storefront
+        setQrTokenError(`✅ This QR code belongs to ${data.vendor_name}. Redirecting to their storefront...`);
+        setQrTokenValid(false);
+        
+        // Redirect to vendor's storefront after 2 seconds
+        setTimeout(() => {
+          router.push(`/scan?vendor=${data.vendor_id}`);
+        }, 2000);
+        return;
+      }
 
       if (!res.ok) {
         setQrTokenError(data.message || 'Invalid or already claimed QR token');
@@ -63,6 +90,16 @@ export default function VendorRegisterPage() {
     } finally {
       setQrTokenValidating(false);
     }
+  };
+
+  const validateQRToken = async () => {
+    if (!formData.qrToken.trim()) {
+      setQrTokenError('QR Token is required');
+      setQrTokenValid(false);
+      return;
+    }
+
+    await validateQRTokenByToken(formData.qrToken);
   };
 
   const handleRegister = async (e: any) => {

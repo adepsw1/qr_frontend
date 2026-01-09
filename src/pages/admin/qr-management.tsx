@@ -42,37 +42,50 @@ export default function QRManagement() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        console.log('QR Fetch Response:', data); // Debug log
-        
-        // Handle nested data structure
-        let qrArray = [];
-        if (data.data) {
-          if (Array.isArray(data.data)) {
-            qrArray = data.data;
-          } else if (data.data.tokens && Array.isArray(data.data.tokens)) {
-            qrArray = data.data.tokens;
-          }
-        } else if (Array.isArray(data)) {
-          qrArray = data;
-        }
-
-        // Map backend field names to frontend expectations
-        const mappedCodes = qrArray.map((qr: any) => ({
-          ...qr,
-          id: qr.token || qr.id,
-          qr_code_image: qr.qr_image || qr.qr_code_image,
-          qr_token: qr.token || qr.qr_token,
-          created_at: qr.created_at || new Date().toISOString(),
-        }));
-        
-        console.log('Mapped QR Codes:', mappedCodes); // Debug log
-        setQRCodes(mappedCodes);
+      const data = await res.json();
+      console.log('QR Fetch Status:', res.status, 'Response:', data);
+      
+      if (!res.ok) {
+        console.error('API Error:', data.message);
+        setError(data.message || 'Failed to fetch QR codes');
+        return;
       }
+
+      // Handle nested data structure
+      // Backend returns: { success, data: { data: [...], total, page, limit, pages } }
+      let qrArray = [];
+      if (data.data) {
+        if (Array.isArray(data.data)) {
+          // Direct array
+          qrArray = data.data;
+        } else if (data.data.data && Array.isArray(data.data.data)) {
+          // Nested: data.data.data = token array
+          qrArray = data.data.data;
+        } else if (data.data.tokens && Array.isArray(data.data.tokens)) {
+          // Alternative: data.data.tokens
+          qrArray = data.data.tokens;
+        }
+      } else if (Array.isArray(data)) {
+        qrArray = data;
+      }
+
+      console.log('QR Array:', qrArray);
+
+      // Map backend field names to frontend expectations
+      const mappedCodes = qrArray.map((qr: any) => ({
+        ...qr,
+        id: qr.token || qr.id,
+        qr_code_image: qr.qr_image || qr.qr_code_image,
+        qr_token: qr.token || qr.qr_token,
+        created_at: qr.created_at || new Date().toISOString(),
+      }));
+      
+      console.log('Mapped Codes:', mappedCodes);
+      setQRCodes(mappedCodes);
+      setError('');
     } catch (err: any) {
       console.error('Fetch error:', err);
-      setError(err.message);
+      setError('Error: ' + err.message);
     }
   };
 
@@ -392,36 +405,44 @@ export default function QRManagement() {
           </div>
 
           {/* Filter */}
-          <div className="mb-6 flex gap-3">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                filter === 'all'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:border-indigo-600'
-              }`}
-            >
-              All ({qrCodes.length})
-            </button>
-            <button
-              onClick={() => setFilter('claimed')}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                filter === 'claimed'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:border-green-600'
-              }`}
-            >
-              Claimed ({claimedCount})
-            </button>
-            <button
-              onClick={() => setFilter('unclaimed')}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                filter === 'unclaimed'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:border-orange-600'
-              }`}
-            >
+          <div className="mb-6 flex gap-3 items-center justify-between">
+            <div className="flex gap-3">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${
+                  filter === 'all'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:border-indigo-600'
+                }`}
+              >
+                All ({qrCodes.length})
+              </button>
+              <button
+                onClick={() => setFilter('claimed')}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${
+                  filter === 'claimed'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:border-green-600'
+                }`}
+              >
+                Claimed ({claimedCount})
+              </button>
+              <button
+                onClick={() => setFilter('unclaimed')}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${
+                  filter === 'unclaimed'
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:border-orange-600'
+                }`}
+              >
               Available ({unclaimedCount})
+            </button>
+            </div>
+            <button
+              onClick={fetchQRCodes}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              🔄 Refresh
             </button>
           </div>
 
