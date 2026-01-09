@@ -3,22 +3,10 @@ import { useRouter } from 'next/router';
 
 export default function QRRedirectPage() {
   const router = useRouter();
-  const [token, setToken] = useState<string>('');
+  const { token } = router.query;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [debugInfo, setDebugInfo] = useState('');
-
-  // Extract token from URL path (for static export compatibility)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const pathParts = window.location.pathname.split('/');
-      const tokenFromUrl = pathParts[pathParts.length - 1];
-      if (tokenFromUrl && tokenFromUrl.startsWith('QR_')) {
-        setToken(tokenFromUrl);
-        console.log('[QR Redirect] Extracted token from URL:', tokenFromUrl);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -107,7 +95,7 @@ export default function QRRedirectPage() {
         {/* Debug Info */}
         <div className="mt-6 p-3 bg-slate-800 rounded text-left text-xs text-slate-400">
           <p className="font-mono">{debugInfo}</p>
-          <p className="font-mono mt-2 text-slate-500">Token: {token}</p>
+          <p className="font-mono mt-2 text-slate-500">Token: {token || 'Loading...'}</p>
         </div>
       </div>
     </div>
