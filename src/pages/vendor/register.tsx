@@ -72,7 +72,7 @@ export default function VendorRegisterPage() {
         
         // Redirect to vendor's storefront after 2 seconds
         setTimeout(() => {
-          router.push(`/scan?vendor=${data.vendor_id}`);
+          router.push(`/scan/${data.vendor_id}`);
         }, 2000);
         return;
       }
