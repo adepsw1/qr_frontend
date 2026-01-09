@@ -388,6 +388,12 @@ export default function AdminDashboard() {
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               <div className="flex gap-3">
                 <button
+                  onClick={() => router.push('/admin/qr-management')}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition font-semibold"
+                >
+                  🎨 Generate QR
+                </button>
+                <button
                   onClick={() => router.push('/admin/products')}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition font-semibold"
                 >
