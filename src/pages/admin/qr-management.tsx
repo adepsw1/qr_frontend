@@ -44,17 +44,34 @@ export default function QRManagement() {
 
       if (res.ok) {
         const data = await res.json();
+        console.log('QR Fetch Response:', data); // Debug log
+        
+        // Handle nested data structure
+        let qrArray = [];
+        if (data.data) {
+          if (Array.isArray(data.data)) {
+            qrArray = data.data;
+          } else if (data.data.tokens && Array.isArray(data.data.tokens)) {
+            qrArray = data.data.tokens;
+          }
+        } else if (Array.isArray(data)) {
+          qrArray = data;
+        }
+
         // Map backend field names to frontend expectations
-        const mappedCodes = (data.data || []).map((qr: any) => ({
+        const mappedCodes = qrArray.map((qr: any) => ({
           ...qr,
-          id: qr.token,
-          qr_code_image: qr.qr_image,
-          qr_token: qr.token,
+          id: qr.token || qr.id,
+          qr_code_image: qr.qr_image || qr.qr_code_image,
+          qr_token: qr.token || qr.qr_token,
           created_at: qr.created_at || new Date().toISOString(),
         }));
+        
+        console.log('Mapped QR Codes:', mappedCodes); // Debug log
         setQRCodes(mappedCodes);
       }
     } catch (err: any) {
+      console.error('Fetch error:', err);
       setError(err.message);
     }
   };
@@ -83,15 +100,19 @@ export default function QRManagement() {
         }),
       });
 
+      const responseData = await res.json();
+      console.log('Generate Response:', responseData); // Debug log
+      
       if (res.ok) {
         setSuccess(`✅ Successfully generated ${generatingCount} QR codes with ${selectedLayout} layout`);
         setGeneratingCount('100');
-        fetchQRCodes();
+        // Wait a moment then fetch updated list
+        setTimeout(() => fetchQRCodes(), 500);
       } else {
-        const data = await res.json();
-        setError(data.message || 'Failed to generate QR codes');
+        setError(responseData.message || 'Failed to generate QR codes');
       }
     } catch (err: any) {
+      console.error('Generate error:', err);
       setError(err.message);
     } finally {
       setGenerating(false);
