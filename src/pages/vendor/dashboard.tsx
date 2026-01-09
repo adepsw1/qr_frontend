@@ -39,6 +39,7 @@ export default function VendorDashboard() {
   const [acceptedOffers, setAcceptedOffers] = useState<AcceptedOfferRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [stats, setStats] = useState<VendorStats | null>(null);
   const [vendor, setVendor] = useState<VendorProfile | null>(null);
   
@@ -275,6 +276,46 @@ export default function VendorDashboard() {
       setOtpData(null);
     } finally {
       setOtpLoading(false);
+    }
+  };
+
+  // Save QR layout changes
+  const saveQRLayout = async (layout: 'layout1' | 'layout2' | 'layout3' | 'layout4') => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const vendorId = localStorage.getItem('vendorId');
+
+      if (!token || !vendorId) {
+        setError('Please log in again');
+        return;
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendor/${vendorId}/qr-layout`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ layout }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Update local vendor data with new QR
+        setVendor((prev) =>
+          prev
+            ? { ...prev, qr_code_url: data.data.qr_code_url, qr_layout: layout }
+            : null,
+        );
+        setSuccess('✅ QR Layout updated successfully!');
+        setSelectedQRLayout(layout);
+        setTimeout(() => setShowQRLayouts(false), 1500);
+      } else {
+        setError(data.message || 'Failed to update QR layout');
+      }
+    } catch (err: any) {
+      setError('Error updating QR layout: ' + err.message);
     }
   };
 
@@ -1315,15 +1356,26 @@ export default function VendorDashboard() {
                       </div>
                       <p className="text-xs sm:text-sm mt-3 text-white font-bold">No app. Sirf scan.</p>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        printQRLayout('layout1');
-                      }}
-                      className="w-full bg-blue-600 text-white py-2 sm:py-2 px-2 rounded-lg font-semibold hover:bg-blue-700 text-xs sm:text-sm"
-                    >
-                      💙 Print Blue Design
-                    </button>
+                <div className="flex flex-col gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          saveQRLayout('layout1');
+                        }}
+                        className="w-full bg-blue-600 text-white py-2 px-2 rounded-lg font-semibold hover:bg-blue-700 text-xs sm:text-sm"
+                      >
+                        ✅ Save & Use
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          printQRLayout('layout1');
+                        }}
+                        className="w-full bg-blue-500 text-white py-2 px-2 rounded-lg font-semibold hover:bg-blue-600 text-xs sm:text-sm"
+                      >
+                        💙 Print
+                      </button>
+                    </div>
                   </div>
 
                   {/* Layout 2 - Green */}
@@ -1343,15 +1395,26 @@ export default function VendorDashboard() {
                       </div>
                       <p className="text-xs sm:text-sm mt-3 text-white font-bold">No app. Sirf scan.</p>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        printQRLayout('layout2');
-                      }}
-                      className="w-full bg-green-600 text-white py-2 sm:py-2 px-2 rounded-lg font-semibold hover:bg-green-700 text-xs sm:text-sm"
-                    >
-                      💚 Print Green Design
-                    </button>
+                <div className="flex flex-col gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          saveQRLayout('layout2');
+                        }}
+                        className="w-full bg-green-600 text-white py-2 px-2 rounded-lg font-semibold hover:bg-green-700 text-xs sm:text-sm"
+                      >
+                        ✅ Save & Use
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          printQRLayout('layout2');
+                        }}
+                        className="w-full bg-green-500 text-white py-2 px-2 rounded-lg font-semibold hover:bg-green-600 text-xs sm:text-sm"
+                      >
+                        💚 Print
+                      </button>
+                    </div>
                   </div>
 
                   {/* Layout 3 - Modern Purple */}
@@ -1371,15 +1434,26 @@ export default function VendorDashboard() {
                       </div>
                       <p className="text-xs sm:text-sm mt-3 text-purple-600 font-bold">📱 Scan with your phone</p>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        printQRLayout('layout3');
-                      }}
-                      className="w-full bg-purple-600 text-white py-2 sm:py-2 px-2 rounded-lg font-semibold hover:bg-purple-700 text-xs sm:text-sm"
-                    >
-                      💜 Print Modern Design
-                    </button>
+                <div className="flex flex-col gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          saveQRLayout('layout3');
+                        }}
+                        className="w-full bg-purple-600 text-white py-2 px-2 rounded-lg font-semibold hover:bg-purple-700 text-xs sm:text-sm"
+                      >
+                        ✅ Save & Use
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          printQRLayout('layout3');
+                        }}
+                        className="w-full bg-purple-500 text-white py-2 px-2 rounded-lg font-semibold hover:bg-purple-600 text-xs sm:text-sm"
+                      >
+                        💜 Print
+                      </button>
+                    </div>
                   </div>
 
                   {/* Layout 4 - Red */}
@@ -1399,15 +1473,26 @@ export default function VendorDashboard() {
                       </div>
                       <p className="text-xs sm:text-sm mt-3 text-white font-bold">Camera se scan karein</p>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        printQRLayout('layout4');
-                      }}
-                      className="w-full bg-red-600 text-white py-2 sm:py-2 px-2 rounded-lg font-semibold hover:bg-red-700 text-xs sm:text-sm"
-                    >
-                      ❤️ Print Red Design
-                    </button>
+                <div className="flex flex-col gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          saveQRLayout('layout4');
+                        }}
+                        className="w-full bg-red-600 text-white py-2 px-2 rounded-lg font-semibold hover:bg-red-700 text-xs sm:text-sm"
+                      >
+                        ✅ Save & Use
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          printQRLayout('layout4');
+                        }}
+                        className="w-full bg-red-500 text-white py-2 px-2 rounded-lg font-semibold hover:bg-red-600 text-xs sm:text-sm"
+                      >
+                        ❤️ Print
+                      </button>
+                    </div>
                   </div>
                 </div>
 
