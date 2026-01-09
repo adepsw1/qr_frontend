@@ -5,7 +5,9 @@ import Head from 'next/head';
 interface QRCode {
   id: string;
   qr_token: string;
+  token?: string;
   qr_code_image: string;
+  qr_image?: string;
   layout: 'layout1' | 'layout2' | 'layout3' | 'layout4' | 'layout5' | 'layout6';
   status: 'unclaimed' | 'claimed';
   vendor_id?: string;
@@ -36,13 +38,21 @@ export default function QRManagement() {
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/list`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (res.ok) {
         const data = await res.json();
-        setQRCodes(data.data || []);
+        // Map backend field names to frontend expectations
+        const mappedCodes = (data.data || []).map((qr: any) => ({
+          ...qr,
+          id: qr.token,
+          qr_code_image: qr.qr_image,
+          qr_token: qr.token,
+          created_at: qr.created_at || new Date().toISOString(),
+        }));
+        setQRCodes(mappedCodes);
       }
     } catch (err: any) {
       setError(err.message);
@@ -410,10 +420,10 @@ export default function QRManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredQRs.map((qr) => (
-                    <tr key={qr.id} className="border-b hover:bg-indigo-50 transition">
+                  {filteredQRs.length > 0 ? filteredQRs.map((qr) => (
+                    <tr key={qr.qr_token || qr.id} className="border-b hover:bg-indigo-50 transition">
                       <td className="px-6 py-3 font-mono text-sm text-indigo-600 font-semibold">
-                        {qr.qr_token}
+                        {qr.qr_token || qr.token || 'N/A'}
                       </td>
                       <td className="px-6 py-3 text-sm">
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
@@ -463,7 +473,14 @@ export default function QRManagement() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center">
+                        <p className="text-gray-500 text-lg">📭 No QR codes generated yet</p>
+                        <p className="text-gray-400 text-sm mt-2">Generate some QR codes above to get started!</p>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
