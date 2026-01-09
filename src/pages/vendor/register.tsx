@@ -5,18 +5,24 @@ import Head from 'next/head';
 export default function VendorRegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
+    qrToken: '',
     businessName: '',
     email: '',
     phone: '',
     password: '',
     confirmPassword: '',
     address: '',
+    city: '',
+    category: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [qrCode, setQrCode] = useState('');
   const [vendorData, setVendorData] = useState<any>(null);
+  const [qrTokenValidating, setQrTokenValidating] = useState(false);
+  const [qrTokenError, setQrTokenError] = useState('');
+  const [qrTokenValid, setQrTokenValid] = useState(false);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -26,15 +32,56 @@ export default function VendorRegisterPage() {
     }));
   };
 
+  const validateQRToken = async () => {
+    if (!formData.qrToken.trim()) {
+      setQrTokenError('QR Token is required');
+      setQrTokenValid(false);
+      return;
+    }
+
+    setQrTokenValidating(true);
+    setQrTokenError('');
+    
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/validate/${formData.qrToken}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setQrTokenError(data.message || 'Invalid or already claimed QR token');
+        setQrTokenValid(false);
+      } else {
+        setQrTokenError('');
+        setQrTokenValid(true);
+      }
+    } catch (err: any) {
+      setQrTokenError('Error validating QR token');
+      setQrTokenValid(false);
+    } finally {
+      setQrTokenValidating(false);
+    }
+  };
+
   const handleRegister = async (e: any) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
+    // Validate QR Token first
+    if (!qrTokenValid) {
+      setError('Please validate your QR token first');
+      setLoading(false);
+      return;
+    }
+
     // Validate all fields are filled
-    if (!formData.businessName.trim() || !formData.email.trim() || !formData.phone.trim() || 
-        !formData.password.trim() || !formData.confirmPassword.trim() || !formData.address.trim()) {
+    if (!formData.qrToken.trim() || !formData.businessName.trim() || !formData.email.trim() || 
+        !formData.phone.trim() || !formData.password.trim() || !formData.confirmPassword.trim() || 
+        !formData.address.trim() || !formData.city.trim() || !formData.category.trim()) {
       setError('All fields are required');
       setLoading(false);
       return;
@@ -57,11 +104,14 @@ export default function VendorRegisterPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          qrToken: formData.qrToken,
           businessName: formData.businessName,
           email: formData.email,
           phone: formData.phone,
           password: formData.password,
           address: formData.address,
+          city: formData.city,
+          category: formData.category,
         }),
       });
 
@@ -71,21 +121,32 @@ export default function VendorRegisterPage() {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Store vendor ID in localStorage
+      // Store vendor ID and access token in localStorage
       if (data.data && data.data.id) {
         localStorage.setItem('vendorId', data.data.id);
+        
+        // Store access token for auto-login
+        if (data.data.accessToken) {
+          localStorage.setItem('accessToken', data.data.accessToken);
+        }
+        
         setVendorData(data.data);
       }
 
       // Display QR code if available
       if (data.data && data.data.qr_code_url) {
         setQrCode(data.data.qr_code_url);
-        setSuccess('✅ Registration successful! Your QR code is ready!');
-      } else {
-        setSuccess('Registration successful! Redirecting to login...');
+        setSuccess('✅ Registration successful! Welcome to your dashboard!');
+        
+        // Auto-redirect to dashboard after 2 seconds
         setTimeout(() => {
-          router.push('/vendor/login');
+          router.push('/vendor/dashboard');
         }, 2000);
+      } else {
+        setSuccess('Registration successful! Redirecting to dashboard...');
+        setTimeout(() => {
+          router.push('/vendor/dashboard');
+        }, 1500);
       }
     } catch (err: any) {
       setError(err.message);
@@ -158,6 +219,32 @@ export default function VendorRegisterPage() {
 
               <form onSubmit={handleRegister} className="space-y-4">
                 <div>
+                  <label className="block text-sm font-medium text-indigo-300 mb-2">QR Token <span className="text-red-400">*</span></label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      name="qrToken"
+                      placeholder="e.g., QR_ABC123XYZ"
+                      value={formData.qrToken}
+                      onChange={handleChange}
+                      className="flex-1 px-4 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+                      disabled={loading || qrTokenValidating}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={validateQRToken}
+                      disabled={qrTokenValidating || !formData.qrToken.trim()}
+                      className="px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:bg-gray-600 text-white rounded-lg font-semibold transition whitespace-nowrap"
+                    >
+                      {qrTokenValidating ? '⏳' : qrTokenValid ? '✅ Valid' : 'Validate'}
+                    </button>
+                  </div>
+                  {qrTokenError && <p className="text-red-400 text-xs mt-1">{qrTokenError}</p>}
+                  {qrTokenValid && <p className="text-green-400 text-xs mt-1">✓ QR token is valid and ready to use</p>}
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-indigo-300 mb-2">Business Name</label>
                   <input
                     type="text"
@@ -169,6 +256,26 @@ export default function VendorRegisterPage() {
                     disabled={loading}
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-indigo-300 mb-2">Category</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+                    disabled={loading}
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    <option value="restaurant">Restaurant</option>
+                    <option value="retail">Retail Store</option>
+                    <option value="salon">Salon & Spa</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="services">Services</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
 
                 <div>
@@ -192,6 +299,20 @@ export default function VendorRegisterPage() {
                     name="phone"
                     placeholder="+1 (555) 000-0000"
                     value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+                    disabled={loading}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-indigo-300 mb-2">City</label>
+                  <input
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={formData.city}
                     onChange={handleChange}
                     className="w-full px-4 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
                     disabled={loading}
@@ -246,10 +367,10 @@ export default function VendorRegisterPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white py-2 rounded-lg font-semibold disabled:opacity-50 transition"
+                  disabled={loading || !qrTokenValid}
+                  className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-600 text-white py-2 rounded-lg font-semibold disabled:opacity-50 transition"
                 >
-                  {loading ? '⏳ Registering...' : 'Register'}
+                  {loading ? '⏳ Registering...' : 'Register & Login'}
                 </button>
               </form>
 
