@@ -6,6 +6,10 @@
   RewriteEngine On
   RewriteBase /
   
+  # Legacy QR path -> query param
+  # Example: /qr/redirect/QR_ABC → /qr/redirect.html?token=QR_ABC
+  RewriteRule ^qr/redirect/([A-Za-z0-9_-]+)$ /qr/redirect.html?token=$1 [L,QSA]
+  
   # Don't rewrite real files or directories
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

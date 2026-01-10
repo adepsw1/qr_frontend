@@ -12,6 +12,8 @@ interface QRCode {
   status: 'unclaimed' | 'claimed';
   vendor_id?: string;
   vendor_name?: string;
+  vendor_slug?: string;
+  admin_verified?: boolean;
   created_at: string;
 }
 
@@ -223,6 +225,36 @@ export default function QRManagement() {
       `);
       printWindow.document.close();
       printWindow.print();
+    }
+  };
+
+  const verifyQRToken = async (qr: QRCode) => {
+    if (!confirm(`Verify QR token ${qr.qr_token} for vendor ${qr.vendor_name}?\n\nAfter verification, customers will be redirected directly to the vendor's storefront.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/qr/${qr.qr_token}/verify`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to verify QR token');
+      }
+
+      setSuccess(`✅ QR token ${qr.qr_token} verified successfully!`);
+      setTimeout(() => setSuccess(''), 3000);
+      fetchQRCodes(); // Refresh list
+    } catch (err: any) {
+      setError(err.message || 'Error verifying QR token');
+      setTimeout(() => setError(''), 5000);
     }
   };
 
@@ -472,6 +504,7 @@ export default function QRManagement() {
                     <th className="px-6 py-3 text-left text-sm font-semibold">Layout</th>
                     <th className="px-6 py-3 text-left text-sm font-semibold">QR Code</th>
                     <th className="px-6 py-3 text-left text-sm font-semibold">Status</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold">Verification</th>
                     <th className="px-6 py-3 text-left text-sm font-semibold">Vendor</th>
                     <th className="px-6 py-3 text-left text-sm font-semibold">Created</th>
                     <th className="px-6 py-3 text-center text-sm font-semibold">Actions</th>
@@ -501,6 +534,23 @@ export default function QRManagement() {
                         >
                           {qr.status === 'claimed' ? '✓ Claimed' : '○ Available'}
                         </span>
+                      </td>
+                      <td className="px-6 py-3 text-sm">
+                        {qr.status === 'claimed' ? (
+                          qr.admin_verified ? (
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-800">✓ Verified</span>
+                          ) : (
+                            <button
+                              onClick={() => verifyQRToken(qr)}
+                              className="px-3 py-1 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 transition"
+                              title="Verify this QR token"
+                            >
+                              ✓ Verify
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-3 text-sm">
                         {qr.vendor_name ? (
@@ -533,7 +583,7 @@ export default function QRManagement() {
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center">
+                      <td colSpan={8} className="px-6 py-12 text-center">
                         <p className="text-gray-500 text-lg">📭 No QR codes generated yet</p>
                         <p className="text-gray-400 text-sm mt-2">Generate some QR codes above to get started!</p>
                       </td>
